@@ -1,0 +1,45 @@
+
+Starting from the main directory of the project (we will call it <maindir>):
+
+
+
+- To train the model:
+
+    cd neat/
+    python src/nn_evolve.py -g <generations> -f <frequency> -o <outputdir> -c <checkpoint>
+    
+    
+    <generations>:  by default is 10 if not specified
+    
+    <outputdir>:    set it to <maindir>/neat/, i.e. the current directory: use '-o .'
+                    if not specified nothing is stored to files
+    
+    <frequency>:    how frequently store results (checkpoints and best.pickle) form the training (results are stored avery <frequency> generations)
+                    by default it is equal to <generations>, and so results are stored only at the end of the training  
+    
+    <checkpoint>:   if set initialize the neat algorithm (the population) with the result stored in the <checkpoint> file
+                    (which should have been created in a previous run of the algorithm in the <outputdir>)
+                    
+                    
+- To try a model:
+    
+    1) run the torcs simulator with:
+        
+        torcs
+        
+        go to quickrace and in the 'select drivers' configuration, set as driver src_server_2
+    
+    2) in another terminal:
+    
+       cd torcs-client
+       
+       ./start.sh -p 3002 -l -w <model> -o <results_file>
+       
+       <model>:             pickle file containing the controller for the car
+                            use '../best.pickle' to try the best model found by the NEAT algorithm
+            
+       <results_file>:      path to the file where to store the final results of the race
+                            (the information which usuallt are used to compute the fitness function)
+                            Usually set to '../model_results/test_results'
+                            
+                            
