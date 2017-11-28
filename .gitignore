@@ -1,4 +1,5 @@
 experiments/*
+!experiments/experiment_example
 src/__pycache__
 torcs-client/__pycache__
 torcs-client/pytocl/__pycache__
