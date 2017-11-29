@@ -76,8 +76,7 @@ def simulation(phenotype_file,
         
         print('Waiting for server to stop')
         server = subprocess.Popen(
-            ['time',
-             'torcs',
+            ['torcs',
              '-nodamage',
              '-nofuel',
              '-nolaptime',

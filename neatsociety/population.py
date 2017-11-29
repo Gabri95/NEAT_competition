@@ -4,12 +4,13 @@ import gzip
 import pickle
 import random
 import time
-import os
+import glob, os
 
 from neatsociety.config import Config
 from neatsociety.indexer import Indexer, InnovationIndexer
 from neatsociety.reporting import ReporterSet, StatisticsReporter, StdOutReporter
 from neatsociety.species import Species
+
 
 
 class CompleteExtinctionException(Exception):
@@ -108,23 +109,41 @@ class Population(object):
             g = self.config.genotype.create_unconnected(g_id, self.config)
             new_population.append(g)
 
-        # Add hidden nodes if requested.
-        if self.config.hidden_nodes > 0:
-            for g in new_population:
-                g.add_hidden_nodes(self.config.hidden_nodes)
-
-        # Add connections based on initial connectivity type.
-        if self.config.initial_connection == 'fully_connected':
-            for g in new_population:
+        if os.path.isdir(os.path.join(os.path.dirname(self.config.filename), self.config.initial_connection)):
+    
+            init_pop_dir = os.path.join(os.path.dirname(self.config.filename), self.config.initial_connection)
+            c = 0
+            for file in glob.glob(os.path.join(init_pop_dir, "*.params")):
+                if c < len(new_population):
+                    new_population[c].connect_from_file(self.innovation_indexer, file)
+                else:
+                    break
+                c += 1
+            
+            for g in new_population[c:]:
+                if self.config.hidden_nodes > 0:
+                    g.add_hidden_nodes(self.config.hidden_nodes)
+                    
                 g.connect_full(self.innovation_indexer)
-        elif self.config.initial_connection == 'partial':
-            for g in new_population:
-                g.connect_partial(self.innovation_indexer, self.config.connection_fraction)
-        elif self.config.initial_connection == 'fs_neat':
-            for g in new_population:
-                g.connect_fs_neat(self.innovation_indexer)
         else:
-            raise Exception("Invalid initial connection type: {!r}".format(self.config.initial_connection))
+    
+            # Add hidden nodes if requested.
+            if self.config.hidden_nodes > 0:
+                for g in new_population:
+                    g.add_hidden_nodes(self.config.hidden_nodes)
+            
+            # Add connections based on initial connectivity type.
+            if self.config.initial_connection == 'fully_connected':
+                for g in new_population:
+                    g.connect_full(self.innovation_indexer)
+            elif self.config.initial_connection == 'partial':
+                for g in new_population:
+                    g.connect_partial(self.innovation_indexer, self.config.connection_fraction)
+            elif self.config.initial_connection == 'fs_neat':
+                for g in new_population:
+                    g.connect_fs_neat(self.innovation_indexer)
+            else:
+                raise Exception("Invalid initial connection type: {!r}".format(self.config.initial_connection))
 
         return new_population
 

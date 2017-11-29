@@ -33,7 +33,6 @@ class Driver1(MyDriver):
         self.update(carstate)
         
         try:
-            output = self.net.activate(input)
             command = Command()
             
             if self.unstuck and self.isStuck(carstate):
@@ -44,6 +43,8 @@ class Driver1(MyDriver):
                 
                 if self.unstuck and carstate.gear <= 0:
                     carstate.gear = 1
+
+                output = self.net.activate(input)
                 
                 for i in range(len(output)):
                     if np.isnan(output[i]):

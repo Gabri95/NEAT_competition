@@ -1,6 +1,6 @@
 from random import choice, gauss, randint, random, shuffle
 import math
-
+import numpy as np
 
 class Genome(object):
     """ A genome for general recurrent neural networks. """
@@ -392,12 +392,12 @@ class Genome(object):
 
     def connect_partial(self, innovation_indexer, fraction):
         assert 0 <= fraction <= 1
-        
+    
         if random() < 0.35:
             all_connections = self.compute_full_connections()
         else:
             all_connections = self.compute_full_connections_partial_recursive()
-        
+    
         shuffle(all_connections)
         num_to_add = int(round(len(all_connections) * fraction))
         for input_id, output_id in all_connections[:num_to_add]:
@@ -405,6 +405,31 @@ class Genome(object):
             innovation_id = innovation_indexer.get_innovation_id(input_id, output_id)
             cg = self.config.conn_gene_type(innovation_id, input_id, output_id, weight, True)
             self.conn_genes[cg.key] = cg
+
+    def connect_from_file(self, innovation_indexer, filename):
+        
+        file = open(filename, 'r')
+
+        # read the first line
+        header = file.readline()
+        inpt, out, hidd = (int(n) for n in header[1:].split(','))
+        
+        # Matrix containing the connections from each neuron (input, hidden or output) to each hidden or output neuron.
+        # As a result, the size has to be (H+O)*(I+H+O).
+        # Moreover, the neurons have to be in the following order: input, output, hidden.
+        connections = np.genfromtxt(filename, skip_header=1)
+
+        assert (hidd + out) == connections.shape[0], "Error! Shape of the parameters not valid!"
+        assert (inpt + hidd + out) == connections.shape[1], "Error! Shape of the parameters not valid!"
+        
+        self.add_hidden_nodes(hidd)
+        
+        for i in range(inpt + out + hidd):
+            for o in range(hidd + out):
+                if connections[o, i] is not None and connections[o, i] != 0.0:
+                    innovation_id = innovation_indexer.get_innovation_id(i, o)
+                    cg = self.config.conn_gene_type(innovation_id, i, o, float(connections[o, i]), True)
+                    self.conn_genes[cg.key] = cg
 
 
 class FFGenome(Genome):

@@ -47,7 +47,9 @@ class Config(object):
 
         if not parameters.has_section('Types'):
             raise RuntimeError("'Types' section not found in NEAT configuration file.")
-
+        
+        self.filename = filename
+        
         # Phenotype configuration
         self.input_nodes = int(parameters.get('phenotype', 'input_nodes'))
         self.output_nodes = int(parameters.get('phenotype', 'output_nodes'))
@@ -77,7 +79,7 @@ class Config(object):
             if not (0 <= self.connection_fraction <= 1):
                 raise Exception("'partial' connection value must be between 0.0 and 1.0, inclusive.")
 
-        assert self.initial_connection in self.allowed_connectivity
+        #assert self.initial_connection in self.allowed_connectivity
 
         # Verify that specified activation functions are valid.
         for fn in self.activation_functions:
