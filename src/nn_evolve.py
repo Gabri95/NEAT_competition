@@ -7,6 +7,7 @@ import os.path
 import argparse
 import sys
 import simulation
+import math
 import datetime
 import importlib
 
@@ -74,13 +75,14 @@ def eval_fitness(genomes, fitness_function=None, evaluate_function=None, cleaner
             
             #fitness = distance - 1000.0 * damage/ (math.fabs(distance) if distance != 0.0 else 1.0) - 100 * penalty
             print('\tDistance = ', distance)
-            print('\tEstimated Distance = ', avg_speed*duration)
             print('\tDistance from Leader = ', distFromLeader)
             print('\tAverage Distance from Leader = ', avgDistFromLeader)
             print('\tRace Position = ', race_position)
+            print('\tLaps = ', laps)
             print('\tDuration = ', duration)
             print('\tDamage = ', damage)
             print('\tPenalty = ', penalty)
+            print('\tDamage/meter = ', damage/math.fabs(distance) if distance != 0.0 else 0.0)
             print('\tAvgSpeed = ', avg_speed)
             
         
@@ -119,7 +121,7 @@ def get_fitness_function(path):
     return mod.evaluate
     
 
-def run(output_dir, neat_config=None, generations=20, port=3001, frequency=None, unstuck=False, sensors=False, evaluation=None, checkpoint=None, configuration=None, timelimit=None):
+def run(output_dir, neat_config=None, generations=20, frequency=None, evaluation=None, checkpoint=None, timelimit=None, **kwargs): #port=3001, unstuck=False, sensors=False, configuration=None, driver=None):
 
     if output_dir is None:
         print('Error! No output dir has been set')
@@ -134,7 +136,7 @@ def run(output_dir, neat_config=None, generations=20, port=3001, frequency=None,
         fitness_function = get_fitness_function(evaluation)
         
     
-    results_path, models_path, debug_path, checkpoints_path, EVAL_FUNCTION = simulation.initialize_experiments(output_dir, configuration=configuration, unstuck=unstuck, sensors=sensors, port=port)
+    results_path, models_path, debug_path, checkpoints_path, EVAL_FUNCTION = simulation.initialize_experiments(output_dir, **kwargs) #configuration=configuration, unstuck=unstuck, sensors=sensors, port=port, driver=driver)
     
     best_model_file = os.path.join(output_dir, 'best.pickle')
     
@@ -151,7 +153,7 @@ def run(output_dir, neat_config=None, generations=20, port=3001, frequency=None,
         
         pop.run(lambda individuals: eval_fitness(individuals,
                                                  fitness_function=fitness_function,
-                                                 evaluate_function=lambda g: EVAL_FUNCTION(g, pop.generation > 13),
+                                                 evaluate_function=lambda g: EVAL_FUNCTION(g),
                                                  cleaner=lambda: simulation.clean_temp_files(results_path, models_path),
                                                  timelimit=timelimit
                                                 ),
@@ -297,6 +299,14 @@ if __name__ == '__main__':
         '--sensors',
         help='Use opponents sensors',
         action='store_true'
+    )
+
+    parser.add_argument(
+        '-d',
+        '--driver',
+        help='Set the type of driver to use',
+        type=str,
+        default='Driver1'
     )
     
     args, _ = parser.parse_known_args()

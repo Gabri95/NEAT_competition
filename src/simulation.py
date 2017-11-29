@@ -36,13 +36,14 @@ def simulation(phenotype_file,
                server_stdout_path,
                server_stderr_path,
                debug_path,
-               port=3001,
+               port,
                client_path=client_path,
                shutdown_wait=shutdown_wait,
                result_saving_wait=result_saving_wait,
                timeout_server=timeout_server,
                unstuck=False,
-               sensors=False):
+               sensors=False,
+               driver=None):
     
     current_time = datetime.datetime.now().isoformat()
     start_time = time.time()
@@ -57,7 +58,8 @@ def simulation(phenotype_file,
     server = None
     
     print('\tStarting Client on port', port)
-    client = subprocess.Popen(['./start.sh', '-p', str(port), '-w', phenotype_file, '-o', results_file, '-d', 'Driver2']
+    client = subprocess.Popen(['./start.sh', '-p', str(port), '-w', phenotype_file, '-o', results_file]
+                              + (['-d', driver] if driver is not None else [])
                               + (['-u'] if unstuck else [])
                               + (['-s'] if sensors else []),
                               stdout=client_stdout,
@@ -185,9 +187,11 @@ def evaluate(net,
              debug_path,
              models_path,
              results_path,
-             port=3001,
-             unstuck=False,
-             sensors=False):
+             **kwargs):
+             # port=3001,
+             # driver = None,
+             # unstuck=False,
+             # sensors=False):
     
     current_time = datetime.datetime.now().isoformat()
     start_time = time.time()
@@ -212,10 +216,13 @@ def evaluate(net,
                                     server_stdout_path,
                                     server_stderr_path,
                                     debug_path,
-                                    port=port,
-                                    unstuck=unstuck,
-                                    sensors=sensors
-                                    )
+                                    **kwargs
+                                  )
+                                    # port=port,
+                                    # unstuck=unstuck,
+                                    # sensors=sensors,
+                                    # driver = driver
+                                    # )
     trials = 3
     while timedout and trials > 0:
         
@@ -231,9 +238,13 @@ def evaluate(net,
                                       server_stdout_path,
                                       server_stderr_path,
                                       debug_path,
-                                      port=port,
-                                      unstuck=unstuck
+                                      **kwargs
                                       )
+                                        # port=port,
+                                        # unstuck=unstuck,
+                                        # sensors=sensors,
+                                        # driver = driver
+                                        # )
     if timedout:
         print('|--------------------- WARNING!!! Torcs server keeps timing out!! -----------------------|')
         
@@ -269,11 +280,14 @@ def clean_temp_files(results_path, models_path):
 def initialize_experiments(
             output_dir,
             configuration=None,
-            port=3001,
-            unstuck=False,
-            sensors=False):
+            **kwargs):
+            # port=3001,
+            # driver=None,
+            # unstuck=False,
+            # sensors=False):
         
-    print('Using port', port)
+    if 'port' in kwargs:
+        print('Using port', kwargs['port'])
     
     results_path = os.path.join(output_dir, 'results')
     models_path = os.path.join(output_dir, 'models')
@@ -304,9 +318,11 @@ def initialize_experiments(
         raise FileNotFoundError('Error! Configuration file "{}" does not exist in {}'.format(configuration))
     
     
-    eval = lambda net, unstuck=unstuck: evaluate(net, configuration=configuration, unstuck=unstuck, sensors=sensors,
-                                                 port=port,
-                                                 debug_path=debug_path,
-                                                 results_path=results_path, models_path=models_path)
+    eval = lambda net: evaluate(net,
+                                configuration=configuration,
+                                debug_path=debug_path,
+                                results_path=results_path,
+                                models_path=models_path,
+                                **kwargs)
         
     return results_path, models_path, debug_path, checkpoints_path, eval
