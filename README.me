@@ -4,42 +4,123 @@ Starting from the main directory of the project (we will call it <maindir>):
 
 
 - To train the model:
-
-    cd neat/
+    
     python src/nn_evolve.py -g <generations> -f <frequency> -o <outputdir> -c <checkpoint>
+    python src/nn_evolve.py -g <generations> -f <frequency> -p <port> -o <outputdir> -d <driver> [-c <checkpoint>] [-u] [-s] [-t <timelimit>]
     
     
-    <generations>:  by default is 10 if not specified
+    -g <generations>:   by default is 10 if not specified
     
-    <outputdir>:    set it to <maindir>/neat/, i.e. the current directory: use '-o .'
-                    if not specified nothing is stored to files
+    -o <outputdir>:     set it to <maindir>/neat/, i.e. the current directory: use '-o .'
+                        if not specified nothing is stored to files
     
-    <frequency>:    how frequently store results (checkpoints and best.pickle) form the training (results are stored avery <frequency> generations)
-                    by default it is equal to <generations>, and so results are stored only at the end of the training  
+    -f <frequency>:     how frequently store results (checkpoints and best.pickle) form the training (results are stored every
+                        <frequency> generations). By default it is equal to <generations>, and so, results are stored only at
+                        the end of the training  
     
-    <checkpoint>:   if set initialize the neat algorithm (the population) with the result stored in the <checkpoint> file
-                    (which should have been created in a previous run of the algorithm in the <outputdir>)
+    -c <checkpoint>:    if set initialize the neat algorithm (the population) with the result stored in the <checkpoint> file
+                        (which should have been created in a previous run of the algorithm in the <outputdir>)
+
+    -p <port>:          port to use for making the server and the client communicate (it has to be in the range [3001, 3010]).
+                        Moreover, it has to be the one corresponding to the "src_server" driver set in the "configuration.xml" file.
+                        (N.B.: make sure the port is available)
+
+    -d <driver>:        it has to be one of the following {"Driver1", "Driver2", "Driver3"} which correspond to the omonymous subclasses of
+                        "my_driver" in the omonymous file in the "torcs-client" directory. Precisely:
+                            - Driver1:  uses 2 different outputs for accelerator and brake (both in [0, 1]) and 1 or 2 outputs for steering (it is
+                                        understood by the length of the output of the net used)
+                            - Driver2:  uses 1 unique output for accelerator and brake (in [-1,1]) and 1 or 2 for steering (as before it is
+                                        understood dinamically looking at the length of the output). If the first output is positive it
+                                        is used for the accelerator whereas, if it is negative, its absolute value is used for the brake.
+                            - Driver3:  it is equal to Driver1 but it uses at most only 40% of the brake
+    
+    -u :                if set it makes the driver to go backward when the car is stuck against the border of the track
+    
+    -s :                if set it makes the driver use 8 more inputs containing information about the opponents nearby.
+                        N.B.: make sure to take this parameter into accout when setting the shape (input/output) of your neural networks.
+    
+    -t <timelimit>:     maximum time (in seconds) of the race to consider for the fitness function.
+                        If set, only the last entry in the result file with a "duration" smaller than <timelimit> is considered.
+                        For example, for a race with 2 laps where the bots in the game can finish a lap about 60 sec, 
+                        I usually set <timelimit> to 100 sec.
+                        If not set, only the last entry of the results is considered, i.e. only the final result at the end of the race.
+
+
+N.B.: by default the script expect a number of file to be present in <outputdir> but it is possible to pass their path through the "-e", "-n" and "-x" options.
+However, it is much more encouraged to use the following approach to run an experiment:
+
+    - build the directory of the experiment. It will be out <outputdir>
+    - create inside the following 3 files: 'configuration.xml', 'nn_config', 'fitness.py'
+
+        + 'configuration.xml':  XML file containing the configuration for the race. Make sure that there is a "src_server" driver among the 
+                                drivers  and that its "idx" correspond to the <port> you want to use (idx=0 -> port=3001, ..., idx=8 -> port=3009).
+                                Here, you can also set the track, either the number of laps or the length of the race (in km) and the other
+                                where the opponents which will race against your driver.
+        + 'nn_config':          file containing the configurations of the NEAT algorithm. Make sure the number of "input" and "output" correspond
+                                to the inputs you are actually considering and to the outputs that the driver you set expects. Here, you can also
+                                set other parameters as the size of the population, the kind of initializzation of the genomes, which activation
+                                functions the neurons can use, etc. Shown below are a few other important parameters:
+
+                                - initial_connection:   can be "partial <percentage>", "fully_connected", "fs_neat" or a path (relative to the 
+                                                        directory where the 'nn_config' file is stored, i.e. <outputdir>) where initialization 
+                                                        files are stored: files with extensions ".params" there are read and their values used to 
+                                                        initialize the same number of genomes in the initial population. If there are not enough
+                                                        initialization file to generate the whole population, the missing genomes are generated 
+                                                        as with "fully_connected" (and adding the number of hidden neurons specified in the 
+                                                        configurations)
+                                                        
+                                - output_activation_functions:  if set, a LIST of activation functions, one for each output neuron, is expected.
+                                                                Hence, make sure the length of that list is equal to the number of output neuron 
+                                                                you set. If this parameter is not set, the activation functions set in 
+                                                                "activation_functions" will be used.
+
+        + 'fitness.py':         Python file which has to contain a function with name "evaluate" and accepting two parameters: (values, timelimit).
+                                    "values" is a list of entries: each entry is a list of values stored by the client 100 steps (and at the end 
+                                    of the simulation). 
+                                    "timelimit" is the value <timelimit> you set when you launched "nn_evolve.py".
+                                This function has to return a scalar value representing the fitness of a genome given these data about its 
+                                performances on a race.
+        
+        N.B.: It is strongly suggested to use the example files provided and edit them to use your own fitness fuction/track/network shape/ etc..
+    
+    - create a "run.sh" file (again, it is better to use the example one and change its parameters inside):
+        This file is used to run more easily the experiment: it just run "nn_evolve.py" with a set of command line parameters you set.
+    
+    - from inside your <outputdir> run "./run.sh"
+    
+    - if nothing crashes, wait for answers (meanwhile you can stare at the beautiful plots the script builds in your <outputdir>)
+
+    
+          
                     
                     
 - To try a model:
     
     1) run the torcs simulator with:
         
-        torcs
+        torcs -nodamage -nofuel -nolaptime
         
-        go to quickrace and in the 'select drivers' configuration, set as driver src_server_2
+        go to quickrace and in the 'select drivers' configuration, set as driver src_server_[n] (where [n] is in [1, 10])
+        
+        N.B.: if you are still running some experiments, make sure now you don't use a port you are also using in those experiments.
     
     2) in another terminal:
     
        cd torcs-client
        
-       ./start.sh -p 3002 -l -w <model> -o <results_file>
+       ./start.sh -p 300[n] -w <model> -d <driver> [-o <results_file>] [-u] [-s]
        
        <model>:             pickle file containing the controller for the car
-                            use '../best.pickle' to try the best model found by the NEAT algorithm
+                            use the file 'best.pickle' in the directory (<outputdir>) of one of your experiments to try the
+                            best model found by the NEAT algorithm so far in that experiment
             
        <results_file>:      path to the file where to store the final results of the race
-                            (the information which usuallt are used to compute the fitness function)
-                            Usually set to '../model_results/test_results'
+                            (the information which usually are used to compute the fitness function)
+                            During the experiments it is set to '<outputdir>/model_results/test_results'.
+                            However, you probably don't want to set it now, so just skip it.
+
+       The other parameters have the same meaning as the ones explained at the beginning for the "nn_evolve.py" script.
+       
+
                             
                             

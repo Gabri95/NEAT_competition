@@ -37,7 +37,7 @@ def eval_fitness(genomes, fitness_function=None, evaluate_function=None, cleaner
         #run the simulation to evaluate the model
         values = evaluate_function(net)
         
-        if values is None:
+        if values is None or len(values) == 0:
             fitness = -100
         else:
             print('\tRegistered {} istants'.format(len(values)))
