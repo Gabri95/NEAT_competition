@@ -178,10 +178,12 @@ def run(output_dir, neat_config=None, generations=20, frequency=None, evaluation
                 visualize.draw_net(best_genome, view=False,
                                    filename=os.path.join(output_dir, "nn_winner-enabled-pruned.gv"),
                                    show_disabled=False, prune_unused=True)
-    
                 visualize.draw_net(best_genome, view=False, filename=os.path.join(output_dir, "nn_winner.gv"))
                 visualize.draw_net(best_genome, view=False, filename=os.path.join(output_dir, "nn_winner-enabled.gv"),
                                    show_disabled=False)
+                statistics.save_stats(pop.statistics, filename=os.path.join(output_dir, 'fitness_history.csv'))
+                statistics.save_species_count(pop.statistics, filename=os.path.join(output_dir, 'speciation.csv'))
+                statistics.save_species_fitness(pop.statistics, filename=os.path.join(output_dir, 'species_fitness.csv'))
             else:
                 print('No genomes in the population!')
                 

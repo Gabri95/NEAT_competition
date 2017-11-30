@@ -10,7 +10,7 @@ import argparse
 import sys
 import traceback
 import signal
-
+import os
 
 driver = None
 
@@ -28,7 +28,8 @@ signal.signal(signal.SIGTERM, sigterm_handler)
 
 registry = {'Driver1': Driver1,
             'Driver2': Driver2,
-            'Driver3': Driver3}
+            'Driver3': Driver3,
+            'Driver4': Driver4}
 
 
 if __name__ == '__main__':
@@ -80,7 +81,11 @@ if __name__ == '__main__':
     print(args.parameters_file)
     print(args.out_file)
     print(args.driver)
-    
+
+    if args.out_file is not None:
+        out_dir = os.path.dirname(args.out_file)
+        if not os.path.exists(out_dir):
+            os.makedirs(out_dir)
     
     if args.parameters_file is not None:
         driver_class = registry[args.driver]
