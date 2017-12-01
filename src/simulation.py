@@ -1,7 +1,5 @@
 
 
-from __future__ import print_function
-
 import os
 import pickle
 import subprocess
@@ -14,9 +12,7 @@ import time
 import signal
 import glob
 
-#sys.path.insert(0, os.path.dirname(fitness_implementation))
-
-#exec('from ' + os.path.filename(fitness_implementation) + ' import fitness')
+from string import Template
 
 
 FILE_PATH = os.path.realpath(__file__)
@@ -25,7 +21,25 @@ DIR_PATH = os.path.dirname(FILE_PATH)
 client_path = os.path.join(DIR_PATH, '../torcs-client/')
 shutdown_wait = 10
 result_saving_wait = 1
-timeout_server = 40
+timeout_server = 50
+
+
+def buildConfigurationFile(phenotype_file, template_file):
+    
+    filein = open(template_file)
+    # read it
+    src = Template(filein.read())
+    # do the substitution
+    content = src.substitute({'phenotype' : os.path.basename(phenotype_file)})
+    
+    path, _ = os.path.splitext(phenotype_file)
+    path = path + '.conf'
+    
+    with open(path, 'w') as f:
+        f.write(content)
+    
+    return path
+        
 
 
 def simulation(phenotype_file,
@@ -37,13 +51,12 @@ def simulation(phenotype_file,
                server_stderr_path,
                debug_path,
                port,
+               driver_config_template,
                client_path=client_path,
                shutdown_wait=shutdown_wait,
                result_saving_wait=result_saving_wait,
-               timeout_server=timeout_server,
-               unstuck=False,
-               sensors=False,
-               driver=None):
+               timeout_server=timeout_server
+               ):
     
     current_time = datetime.datetime.now().isoformat()
     start_time = time.time()
@@ -55,13 +68,12 @@ def simulation(phenotype_file,
     
     opened_files = [client_stdout, client_stderr, server_stdout, server_stderr]
     
+    driver_config = buildConfigurationFile(phenotype_file, driver_config_template)
+    
     server = None
     
     print('\tStarting Client on port', port)
-    client = subprocess.Popen(['./start.sh', '-p', str(port), '-w', phenotype_file, '-o', results_file]
-                              + (['-d', driver] if driver is not None else [])
-                              + (['-u'] if unstuck else [])
-                              + (['-s'] if sensors else []),
+    client = subprocess.Popen(['./start.sh', '-p', str(port), '-w', phenotype_file, '-o', results_file, '-d', driver_config],
                               stdout=client_stdout,
                               stderr=client_stderr,
                               cwd=client_path,
@@ -188,9 +200,7 @@ def evaluate(net,
              results_path,
              **kwargs):
              # port=3001,
-             # driver = None,
-             # unstuck=False,
-             # sensors=False):
+             # driver_config_template = None):
     
     current_time = datetime.datetime.now().isoformat()
     start_time = time.time()
@@ -218,14 +228,12 @@ def evaluate(net,
                                     **kwargs
                                   )
                                     # port=port,
-                                    # unstuck=unstuck,
-                                    # sensors=sensors,
-                                    # driver = driver
+                                    # driver_config_template = driver_config_template
                                     # )
     trials = 3
     while timedout and trials > 0:
         
-        time.sleep(2)
+        time.sleep(3)
         
         print('Try Again:', trials, ' trials left')
         trials-=1
@@ -240,9 +248,7 @@ def evaluate(net,
                                       **kwargs
                                       )
                                         # port=port,
-                                        # unstuck=unstuck,
-                                        # sensors=sensors,
-                                        # driver = driver
+                                        # driver_config_template = driver_config_template
                                         # )
     if timedout:
         print('|--------------------- WARNING!!! Torcs server keeps timing out!! -----------------------|')
@@ -279,14 +285,11 @@ def clean_temp_files(results_path, models_path):
 def initialize_experiments(
             output_dir,
             configuration=None,
+            port=3001,
+            driver_config_template=None,
             **kwargs):
-            # port=3001,
-            # driver=None,
-            # unstuck=False,
-            # sensors=False):
-        
-    if 'port' in kwargs:
-        print('Using port', kwargs['port'])
+    
+    print('Using port', port)
     
     results_path = os.path.join(output_dir, 'results')
     models_path = os.path.join(output_dir, 'models')
@@ -305,12 +308,14 @@ def initialize_experiments(
     
     if configuration is None:
         configuration = os.path.join(output_dir, 'configuration.xml')
+    
+    if driver_config_template is None:
+        driver_config_template = os.path.join(output_dir, 'subsumption.template')
         
     configuration = os.path.realpath(configuration)
     debug_path = os.path.realpath(debug_path)
     results_path = os.path.realpath(results_path)
     models_path = os.path.realpath(models_path)
-    
     
     if not os.path.isfile(configuration):
         print('Error! Configuration file "{}" does not exist in {}'.format(configuration))
@@ -322,6 +327,8 @@ def initialize_experiments(
                                 debug_path=debug_path,
                                 results_path=results_path,
                                 models_path=models_path,
+                                port=port,
+                                driver_config_template=driver_config_template,
                                 **kwargs)
         
     return results_path, models_path, debug_path, checkpoints_path, eval

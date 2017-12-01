@@ -1,8 +1,9 @@
 experiments/*
 !experiments/experiment_example
+!experiments/test_initialization
 src/__pycache__
 torcs-client/__pycache__
 torcs-client/pytocl/__pycache__
-train_data
 .idea
 neatsociety/__pycache__
+

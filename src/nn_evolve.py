@@ -37,43 +37,28 @@ def eval_fitness(genomes, fitness_function=None, evaluate_function=None, cleaner
         #run the simulation to evaluate the model
         values = evaluate_function(net)
         
-        if values is None or len(values) == 0:
-            fitness = -100
-        else:
-            print('\tRegistered {} istants'.format(len(values)))
+        
+        print('\tRegistered {} istants'.format(len(values)))
 
-            last_result = []
-            later_time = 0
-            if timelimit is not None:
-                for val in values:
-                    if later_time > timelimit:
-                        break
-                    elif val[0] > later_time and val[0] <= timelimit:
-                        last_result = val
-                        later_time = val[0]
-    
-                if last_result[0] < timelimit:
-                    last_result[6] *= last_result[0] / timelimit
-                    last_result[0] = timelimit
-            else:
-                last_result = values[-1]
-
+        last_result = []
+        later_time = 0
+        if timelimit is not None:
+            for val in values:
+                if later_time > timelimit or math.nan in val:
+                    break
+                elif val[0] > later_time and val[0] <= timelimit:
+                    last_result = val
+                    later_time = val[0]
+            
+            if len(last_result) > 0 and last_result[0] < timelimit:
+                last_result[6] *= last_result[0] / timelimit
+                last_result[0] = timelimit
+        elif values is not None and len(values) > 0:
+            last_result = values[-1]
+        
+        if len(last_result) > 0:
             duration, distance, laps, distance_from_start, damage, penalty, avg_speed, race_position, distFromLeader, avgDistFromLeader = last_result[:10]
-            
-            if timelimit is not None:
-                avg_speed *= duration / timelimit
-                duration = timelimit
-            
-            if fitness_function is None:
-                #fitness = distance - 0.08*damage - 200*penalty
-                #fitness = avg_speed * duration - 0.08 * damage - 200 * penalty
-                fitness = avg_speed * duration - 0.2 * damage - 300 * penalty
-                if laps >= 2:
-                    fitness += 50.0*avg_speed#distance/(duration+1)
-            else:
-                fitness = fitness_function(values, timelimit)
-            
-            #fitness = distance - 1000.0 * damage/ (math.fabs(distance) if distance != 0.0 else 1.0) - 100 * penalty
+
             print('\tDistance = ', distance)
             print('\tDistance from Leader = ', distFromLeader)
             print('\tAverage Distance from Leader = ', avgDistFromLeader)
@@ -82,9 +67,11 @@ def eval_fitness(genomes, fitness_function=None, evaluate_function=None, cleaner
             print('\tDuration = ', duration)
             print('\tDamage = ', damage)
             print('\tPenalty = ', penalty)
-            print('\tDamage/meter = ', damage/math.fabs(distance) if distance != 0.0 else 0.0)
+            print('\tDamage/meter = ', damage / math.fabs(distance) if distance != 0.0 else 0.0)
             print('\tAvgSpeed = ', avg_speed)
             
+        
+        fitness = fitness_function(values, timelimit)
         
         print('\tFITNESS =', fitness, '\n')
         
@@ -95,10 +82,6 @@ def eval_fitness(genomes, fitness_function=None, evaluate_function=None, cleaner
     if cleaner is not None:
         #at the end of the generation, clean the files we don't need anymore
         cleaner()
-
-
-    
-
 
 
 def get_best_genome(population):
@@ -121,7 +104,7 @@ def get_fitness_function(path):
     return mod.evaluate
     
 
-def run(output_dir, neat_config=None, generations=20, frequency=None, evaluation=None, checkpoint=None, timelimit=None, **kwargs): #port=3001, unstuck=False, sensors=False, configuration=None, driver=None):
+def run(output_dir, neat_config=None, generations=20, frequency=None, evaluation=None, checkpoint=None, timelimit=None, **kwargs): #port=3001, configuration=None, driver_config_template=None):
 
     if output_dir is None:
         print('Error! No output dir has been set')
@@ -136,7 +119,7 @@ def run(output_dir, neat_config=None, generations=20, frequency=None, evaluation
         fitness_function = get_fitness_function(evaluation)
         
     
-    results_path, models_path, debug_path, checkpoints_path, EVAL_FUNCTION = simulation.initialize_experiments(output_dir, **kwargs) #configuration=configuration, unstuck=unstuck, sensors=sensors, port=port, driver=driver)
+    results_path, models_path, debug_path, checkpoints_path, EVAL_FUNCTION = simulation.initialize_experiments(output_dir, **kwargs) #configuration=configuration, port=port, driver_config_template=driver_config_template)
     
     best_model_file = os.path.join(output_dir, 'best.pickle')
     
@@ -215,6 +198,9 @@ def run(output_dir, neat_config=None, generations=20, frequency=None, evaluation
     else:
         print('No genomes in the population!')
 
+
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='NEAT algorithm'
@@ -256,13 +242,6 @@ if __name__ == '__main__':
     )
 
     parser.add_argument(
-        '-u',
-        '--unstuck',
-        help='Make the drivers automatically try to unstuck',
-        action='store_true'
-    )
-
-    parser.add_argument(
         '-n',
         '--neat_config',
         help='NEAT configuration file. By default uses the "nn_config" file in "output_dir"',
@@ -297,18 +276,11 @@ if __name__ == '__main__':
     )
 
     parser.add_argument(
-        '-s',
-        '--sensors',
-        help='Use opponents sensors',
-        action='store_true'
-    )
-
-    parser.add_argument(
         '-d',
-        '--driver',
-        help='Set the type of driver to use',
+        '--driver_config_template',
+        help='Configuration file template for the driver (use $phenotype for the path to the model)',
         type=str,
-        default='Driver1'
+        default=None
     )
     
     args, _ = parser.parse_known_args()
