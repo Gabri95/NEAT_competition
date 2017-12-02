@@ -5,7 +5,8 @@ import numpy as np
 tracks = {
 
 'forza': {'timelimit': None, 'length': 1000},
-'e-track-1': {'timelimit': None, 'length': 1000}
+'e-track-1': {'timelimit': None, 'length': 1000},
+'michigan': {'timelimit': None, 'length': 1200}
 }
 
 
@@ -32,7 +33,7 @@ def evaluate(results):
             print('\t\tPenalty = ', penalty)
             print('\t\tAvgSpeed = ', avg_speed)
 
-            fitness += (distFromLeader + avgDistFromLeader) - 500*(race_position -1) - 3*penalty - damage
+            fitness += (distFromLeader + avgDistFromLeader) + 100*avg_speed - 500*(race_position -1) - 3*penalty - damage
         
 
     return fitness

@@ -34,6 +34,7 @@ def eval_fitness(genomes, fitness_function=None, evaluate_function=None, cleaner
         net = nn.create_recurrent_phenotype(g)
         
         
+        
         #run the simulation to evaluate the model
         results = evaluate_function(net)
         

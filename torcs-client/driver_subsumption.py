@@ -6,12 +6,16 @@ import sys
 import os.path
 import numpy as np
 
+
 from mysubsumption.racerLayer1 import RacerLayer1
 from mysubsumption.racerLayer2 import RacerLayer2
 from mysubsumption.racerLayer3 import RacerLayer3
+from mysubsumption.racerLayer4 import RacerLayer4
 from mysubsumption.unstuckLayer import UnstuckLayer
 from mysubsumption.opponentsLayer1 import OpponentsLayer1
 from mysubsumption.opponentsRacerLayer1 import OpponentsRacerLayer1
+from mysubsumption.opponentsLayer2 import OpponentsLayer2
+from mysubsumption.opponentsRacerLayer2 import OpponentsRacerLayer2
 
 
 from configparser import ConfigParser
@@ -22,9 +26,12 @@ layers_type = {
     'RacerLayer1' : RacerLayer1,
     'RacerLayer2' : RacerLayer2,
     'RacerLayer3' : RacerLayer3,
+    'RacerLayer4' : RacerLayer4,
     'UnstuckLayer' :UnstuckLayer,
     'OpponentsLayer1' : OpponentsLayer1,
-    'OpponentsRacerLayer1' : OpponentsRacerLayer1
+    'OpponentsRacerLayer1' : OpponentsRacerLayer1,
+    'OpponentsLayer2' : OpponentsLayer2,
+    'OpponentsRacerLayer2' : OpponentsRacerLayer2
 }
 
 

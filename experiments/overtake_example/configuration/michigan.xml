@@ -13,8 +13,8 @@
   <section name="Tracks">
     <attnum name="maximum number" val="1"/>
     <section name="1">
-      <attstr name="name" val="forza"/>
-      <attstr name="category" val="road"/>
+      <attstr name="name" val="michigan"/>
+      <attstr name="category" val="oval"/>
     </section>
 
   </section>
@@ -34,7 +34,7 @@
     <attnum name="laps" val="0"/>
     <section name="Starting Grid">
       <attnum name="rows" val="1"/>
-      <attnum name="distance to start" val="1000"/>
+      <attnum name="distance to start" val="1200"/>
       <attnum name="distance between columns" val="20"/>
       <attnum name="offset within a column" val="10"/>
       <attnum name="initial speed" val="0"/>
