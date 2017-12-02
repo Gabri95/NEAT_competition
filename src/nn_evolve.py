@@ -21,7 +21,7 @@ from neatsociety import nn, population, statistics, visualize
 
 
 
-def eval_fitness(genomes, fitness_function=None, evaluate_function=None, cleaner=None, timelimit=None):
+def eval_fitness(genomes, fitness_function=None, evaluate_function=None, cleaner=None):
     
     print('\nStarting evaluation...\n\n')
     
@@ -35,43 +35,21 @@ def eval_fitness(genomes, fitness_function=None, evaluate_function=None, cleaner
         
         
         #run the simulation to evaluate the model
-        values = evaluate_function(net)
+        results = evaluate_function(net)
         
-        
-        print('\tRegistered {} istants'.format(len(values)))
-
-        last_result = []
-        later_time = 0
-        if timelimit is not None:
-            for val in values:
-                if later_time > timelimit or math.nan in val:
-                    break
-                elif val[0] > later_time and val[0] <= timelimit:
-                    last_result = val
-                    later_time = val[0]
-            
-            if len(last_result) > 0 and last_result[0] < timelimit:
-                last_result[6] *= last_result[0] / timelimit
-                last_result[0] = timelimit
-        elif values is not None and len(values) > 0:
-            last_result = values[-1]
-        
-        if len(last_result) > 0:
-            duration, distance, laps, distance_from_start, damage, penalty, avg_speed, race_position, distFromLeader, avgDistFromLeader = last_result[:10]
-
-            print('\tDistance = ', distance)
-            print('\tDistance from Leader = ', distFromLeader)
-            print('\tAverage Distance from Leader = ', avgDistFromLeader)
-            print('\tRace Position = ', race_position)
-            print('\tLaps = ', laps)
-            print('\tDuration = ', duration)
-            print('\tDamage = ', damage)
-            print('\tPenalty = ', penalty)
-            print('\tDamage/meter = ', damage / math.fabs(distance) if distance != 0.0 else 0.0)
-            print('\tAvgSpeed = ', avg_speed)
+        # print('\tDistance = ', distance)
+        # print('\tDistance from Leader = ', distFromLeader)
+        # print('\tAverage Distance from Leader = ', avgDistFromLeader)
+        # print('\tRace Position = ', race_position)
+        # print('\tLaps = ', laps)
+        # print('\tDuration = ', duration)
+        # print('\tDamage = ', damage)
+        # print('\tPenalty = ', penalty)
+        # print('\tDamage/meter = ', damage / math.fabs(distance) if distance != 0.0 else 0.0)
+        # print('\tAvgSpeed = ', avg_speed)
             
         
-        fitness = fitness_function(values, timelimit)
+        fitness = fitness_function(results)
         
         print('\tFITNESS =', fitness, '\n')
         
@@ -104,7 +82,7 @@ def get_fitness_function(path):
     return mod.evaluate
     
 
-def run(output_dir, neat_config=None, generations=20, frequency=None, evaluation=None, checkpoint=None, timelimit=None, **kwargs): #port=3001, configuration=None, driver_config_template=None):
+def run(output_dir, neat_config=None, generations=20, frequency=None, evaluation=None, checkpoint=None, **kwargs): #port=3001, configuration=None, driver_config_template=None):
 
     if output_dir is None:
         print('Error! No output dir has been set')
@@ -137,8 +115,7 @@ def run(output_dir, neat_config=None, generations=20, frequency=None, evaluation
         pop.run(lambda individuals: eval_fitness(individuals,
                                                  fitness_function=fitness_function,
                                                  evaluate_function=lambda g: EVAL_FUNCTION(g),
-                                                 cleaner=lambda: simulation.clean_temp_files(results_path, models_path),
-                                                 timelimit=timelimit
+                                                 cleaner=lambda: simulation.clean_temp_files(results_path, models_path)
                                                 ),
                 1)
         
@@ -252,7 +229,9 @@ if __name__ == '__main__':
     parser.add_argument(
         '-x',
         '--configuration',
-        help='XML configuration file for running the race. By default uses the "configuration.xml" file in "output_dir"',
+        help='XML configuration file or directory containing a set of XML configuration files for running the race.'
+             'By default, uses the "configuration.xml" file in "output_dir"'
+             'or, if not present, the directory "output_dir/configuration"',
         type=str,
         default=None
     )
@@ -261,17 +240,9 @@ if __name__ == '__main__':
         '-e',
         '--evaluation',
         help='Python file containing the function for fitness evaluation.\n'
-             'The function implemented must have the following signature "evaluate(values: List[List], timelimit: int) -> float".\n'
+             'The function implemented must have the following signature "evaluate(values: List[List]) -> float".\n'
              'By default uses the "fitness.py" file in "output_dir"',
         type=str,
-        default=None
-    )
-
-    parser.add_argument(
-        '-t',
-        '--timelimit',
-        help='Timelimit for the race',
-        type=int,
         default=None
     )
 

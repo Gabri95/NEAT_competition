@@ -61,6 +61,8 @@ def simulation(phenotype_file,
     current_time = datetime.datetime.now().isoformat()
     start_time = time.time()
 
+    print('\t\tRun race from', os.path.basename(configuration))
+    
     client_stdout = open(client_stdout_path, 'w')
     client_stderr = open(client_stderr_path, 'w')
     server_stdout = open(server_stdout_path, 'w')
@@ -72,7 +74,7 @@ def simulation(phenotype_file,
     
     server = None
     
-    print('\tStarting Client on port', port)
+    print('\t\tStarting Client on port', port)
     client = subprocess.Popen(['./start.sh', '-p', str(port), '-w', phenotype_file, '-o', results_file, '-d', driver_config],
                               stdout=client_stdout,
                               stderr=client_stderr,
@@ -83,10 +85,11 @@ def simulation(phenotype_file,
     # wait a second to let client start
     # time.sleep(1)
     
+    
     timeout = False
     try:
         
-        print('Waiting for server to stop')
+        print('\t\tWaiting for server to stop')
         server = subprocess.Popen(
             ['torcs',
              '-nodamage',
@@ -102,7 +105,7 @@ def simulation(phenotype_file,
         server.wait(timeout=timeout_server)
     
     except subprocess.TimeoutExpired:
-        print('\tSERVER TIMED-OUT!')
+        print('\t\tSERVER TIMED-OUT!')
         timeout = True
         
         if server is not None:
@@ -131,7 +134,7 @@ def simulation(phenotype_file,
         
         raise
     
-    print('\tGently killing client')
+    print('\t\tGently killing client')
 
     # Try to be gentle
     os.killpg(os.getpgid(client.pid), signal.SIGTERM)
@@ -148,7 +151,7 @@ def simulation(phenotype_file,
     for file in opened_files:
         file.close()
     
-    print('\tSimulation ended')
+    print('\t\tSimulation ended')
     
     # wait a second for the results file to be created
     time.sleep(2)
@@ -157,7 +160,7 @@ def simulation(phenotype_file,
     attempts = 0
     while not os.path.exists(results_file) and attempts < 10:
         attempts += 1
-        print('Attempt', attempts, 'Time =', datetime.datetime.now().isoformat())
+        print('\t\tAttempt', attempts, 'Time =', datetime.datetime.now().isoformat())
         time.sleep(result_saving_wait + attempts - 1)
 
     # try opening the file
@@ -188,87 +191,82 @@ def simulation(phenotype_file,
     
     end_time = time.time()
     
-    print('\tSimulation Execution Time =', end_time - start_time, 'seconds')
+    print('\t\tSimulation Execution Time =', end_time - start_time, 'seconds')
     
     return values, timeout
 
 
 def evaluate(net,
-             configuration,
+             configurations,
              debug_path,
              models_path,
              results_path,
              **kwargs):
              # port=3001,
              # driver_config_template = None):
+
     
     current_time = datetime.datetime.now().isoformat()
     start_time = time.time()
-    
-    results_file = os.path.join(results_path, 'results_{}'.format(current_time))
+    results = {}
+
     phenotype_file = os.path.join(models_path, "model_{}.pickle".format(current_time))
-    
     pickle.dump(net, open(phenotype_file, "wb"))
-    
-    print('Results at', results_file)
-    
-    client_stdout_path = os.path.join(debug_path, 'client/out.log')
-    client_stderr_path = os.path.join(debug_path, 'client/err.log')
-    server_stdout_path = os.path.join(debug_path, 'server/out.log')
-    server_stderr_path = os.path.join(debug_path, 'server/err.log')
 
-    values, timedout = simulation(phenotype_file,
-                                    results_file,
-                                    configuration,
-                                    client_stdout_path,
-                                    client_stderr_path,
-                                    server_stdout_path,
-                                    server_stderr_path,
-                                    debug_path,
-                                    **kwargs
-                                  )
-                                    # port=port,
-                                    # driver_config_template = driver_config_template
-                                    # )
-    trials = 3
-    while timedout and trials > 0:
+    for conf_file in configurations:
+        name = os.path.splitext(os.path.basename(conf_file))[0]
         
-        time.sleep(3)
+        print('\tEVALUATION on: "{}"'.format(name))
         
-        print('Try Again:', trials, ' trials left')
-        trials-=1
-        values, timedout = simulation(phenotype_file,
-                                      results_file,
-                                      configuration,
-                                      client_stdout_path,
-                                      client_stderr_path,
-                                      server_stdout_path,
-                                      server_stderr_path,
-                                      debug_path,
-                                      **kwargs
-                                      )
-                                        # port=port,
-                                        # driver_config_template = driver_config_template
-                                        # )
-    if timedout:
-        print('|--------------------- WARNING!!! Torcs server keeps timing out!! -----------------------|')
+        results_file = os.path.join(results_path, 'results_{}_{}'.format(current_time, name))
+        print('\t\tResults at', os.path.basename(results_file))
         
-        copy_path = os.path.join(debug_path, 'model_timedout_{}.pickle'.format(current_time))
-
-        print('Copying the model which caused the timeout to:', copy_path)
-        copyfile(phenotype_file, copy_path)
+        client_stdout_path = os.path.join(debug_path, 'client/out.log')
+        client_stderr_path = os.path.join(debug_path, 'client/err.log')
+        server_stdout_path = os.path.join(debug_path, 'server/out.log')
+        server_stderr_path = os.path.join(debug_path, 'server/err.log')
         
-        print('Copying the out and err files of the model')
-        copyfile(client_stdout_path, os.path.join(debug_path, 'client/timeout_out_{}.log'.format(current_time)))
-        copyfile(client_stderr_path, os.path.join(debug_path, 'client/timeout_err_{}.log'.format(current_time)))
-        copyfile(server_stdout_path, os.path.join(debug_path, 'server/timeout_out_{}.log'.format(current_time)))
-        copyfile(server_stderr_path, os.path.join(debug_path, 'server/timeout_err_{}.log'.format(current_time)))
+        timedout = True
+        trials = 3
+        while timedout and trials >= 0:
+            values, timedout = simulation(phenotype_file,
+                                          results_file,
+                                          conf_file,
+                                          client_stdout_path,
+                                          client_stderr_path,
+                                          server_stdout_path,
+                                          server_stderr_path,
+                                          debug_path,
+                                          **kwargs
+                                          )
+                                            # port=port,
+                                            # driver_config_template = driver_config_template
+                                            # )
+            if timedout:
+                time.sleep(3)
+                print('Timedout:', trials, ' trials left')
+                trials -= 1
+                
+        if timedout:
+            print('|--------------------- WARNING!!! Torcs server keeps timing out!! -----------------------|')
+            
+            copy_path = os.path.join(debug_path, 'model_timedout_{}_{}.pickle'.format(current_time, name))
+    
+            print('\t\tCopying the model which caused the timeout to:', copy_path)
+            copyfile(phenotype_file, copy_path)
+            
+            print('\t\tCopying the out and err files of the model')
+            copyfile(client_stdout_path, os.path.join(debug_path, 'client/timeout_out_{}_{}.log'.format(current_time, name)))
+            copyfile(client_stderr_path, os.path.join(debug_path, 'client/timeout_err_{}_{}.log'.format(current_time, name)))
+            copyfile(server_stdout_path, os.path.join(debug_path, 'server/timeout_out_{}_{}.log'.format(current_time, name)))
+            copyfile(server_stderr_path, os.path.join(debug_path, 'server/timeout_err_{}_{}.log'.format(current_time, name)))
+            
+        results[name] = values
     
     end_time = time.time()
-    
     print('Total Execution Time =', end_time - start_time, 'seconds')
-    
-    return values
+        
+    return results
 
 
 
@@ -309,21 +307,32 @@ def initialize_experiments(
     if configuration is None:
         configuration = os.path.join(output_dir, 'configuration.xml')
     
+        if not os.path.exists(configuration):
+            configuration = os.path.join(output_dir, 'configuration/')
+
+    configuration = os.path.realpath(configuration)
+    
+    if os.path.isdir(configuration):
+        configurations = []
+        for zippath in glob.iglob(os.path.join(configuration, '*.xml')):
+            configurations.append(zippath)
+    elif os.path.isfile(configuration):
+        configurations = [configuration]
+    else:
+        print('Error! Configuration file "{}" does not exist'.format(configuration))
+        raise FileNotFoundError('Error! Configuration file "{}" does not exist'.format(configuration))
+    
     if driver_config_template is None:
         driver_config_template = os.path.join(output_dir, 'subsumption.template')
         
-    configuration = os.path.realpath(configuration)
     debug_path = os.path.realpath(debug_path)
     results_path = os.path.realpath(results_path)
     models_path = os.path.realpath(models_path)
     
-    if not os.path.isfile(configuration):
-        print('Error! Configuration file "{}" does not exist in {}'.format(configuration))
-        raise FileNotFoundError('Error! Configuration file "{}" does not exist in {}'.format(configuration))
     
     
     eval = lambda net: evaluate(net,
-                                configuration=configuration,
+                                configurations=configurations,
                                 debug_path=debug_path,
                                 results_path=results_path,
                                 models_path=models_path,

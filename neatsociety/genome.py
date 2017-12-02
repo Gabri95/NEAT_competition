@@ -393,7 +393,7 @@ class Genome(object):
     def connect_partial(self, innovation_indexer, fraction):
         assert 0 <= fraction <= 1
     
-        if random() < 0.35:
+        if random() < 0.2:
             all_connections = self.compute_full_connections()
         else:
             all_connections = self.compute_full_connections_partial_recursive()

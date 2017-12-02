@@ -238,15 +238,15 @@ class Population(object):
             self.species, new_population = self.reproduction.reproduce(self.species, self.config.pop_size)
 
             # Check for complete extinction
-            #if not self.species:
-            #    self.reporters.complete_extinction()
+            if not self.species:
+                self.reporters.complete_extinction()
 
-            #    # If requested by the user, create a completely new population,
-            #    # otherwise raise an exception.
-            #    if self.config.reset_on_extinction:
-            #        new_population = self._create_population()
-            #    else:
-            #        raise CompleteExtinctionException()
+                # If requested by the user, create a completely new population,
+                # otherwise raise an exception.
+                if self.config.reset_on_extinction:
+                    new_population = self._create_population()
+                else:
+                    raise CompleteExtinctionException()
 
             # Update species age.
             for s in self.species:

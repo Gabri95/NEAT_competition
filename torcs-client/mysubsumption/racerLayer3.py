@@ -27,7 +27,10 @@ class RacerLayer3(RacerLayer1):
             d = min([carstate.distances_from_edge[j] for j in idxs])
             if math.fabs(carstate.distance_from_center) > 1 or d < 0:
                 array.append(-1)
+            elif d > 199.8:
+                array.append(0)
             else:
-                array.append(1 - (d/200.0))
+                #array.append(1 -d / 200.0)
+                array.append(np.exp(-(d / 100.0)**2))
         
         return np.array(array)

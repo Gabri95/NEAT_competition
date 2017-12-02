@@ -7,5 +7,5 @@ DRIVER=Driver1
 
 
 
-python $ROOT/src/nn_evolve.py -g 1 -f 1 -o . -p $PORT -u -d $DRIVER -t 110
+python $ROOT/src/nn_evolve.py -g 1 -f 1 -o . -p $PORT
 

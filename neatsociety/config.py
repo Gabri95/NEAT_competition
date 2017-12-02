@@ -4,7 +4,7 @@ from neatsociety.genes import NodeGene, ConnectionGene
 from neatsociety.genome import Genome, FFGenome
 from neatsociety import activation_functions
 from neatsociety.reproduction import DefaultReproduction
-from neatsociety.stagnation import DefaultStagnation
+from neatsociety.stagnation import DefaultStagnation, PreserveBestStagnation
 
 try:
     from configparser import ConfigParser
@@ -30,6 +30,7 @@ class Config(object):
 
     def __init__(self, filename):
         self.registry = {'DefaultStagnation': DefaultStagnation,
+                         'PreserveBestStagnation': PreserveBestStagnation,
                          'DefaultReproduction': DefaultReproduction}
         self.type_config = {}
         self.load(filename)
