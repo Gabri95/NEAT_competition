@@ -31,6 +31,6 @@ class RacerLayer3(RacerLayer1):
                 array.append(0)
             else:
                 #array.append(1 -d / 200.0)
-                array.append(np.exp(-(d / 100.0)**2))
+                array.append(np.exp(-(5*d / 200.0)))
         
         return np.array(array)

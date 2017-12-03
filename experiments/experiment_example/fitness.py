@@ -39,24 +39,22 @@ def evaluate(results):
     
 
 
+
 def retrieveFromTimelimit(values, timelimit):
     last_result = []
     later_time = 0
-    if timelimit is not None:
-        for val in values:
-            if later_time > timelimit or np.isnan(val).any():
-                break
-            elif val[0] > later_time and val[0] <= timelimit:
-                last_result = val
-                later_time = val[0]
+    
+    for val in values:
+        if np.isnan(val).any() or (timelimit is not None and val[0] > timelimit):
+            break
+        elif val[0] > later_time:
+            last_result = val
+            later_time = val[0]
 
-        if len(last_result) > 0 and last_result[0] < timelimit:
-            last_result[6] *= last_result[0] / timelimit
-            last_result[0] = timelimit
-    elif len(values) > 0:
-        last_result = values[-1]
-    else:
-        last_result = []
+    if timelimit is not None and len(last_result) > 0 and last_result[0] < timelimit:
+        last_result[6] *= last_result[0] / timelimit
+        last_result[0] = timelimit
+
     
     return last_result
     

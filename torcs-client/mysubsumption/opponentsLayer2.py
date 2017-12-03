@@ -32,16 +32,16 @@ class OpponentsLayer2(RacerLayer2):
                 array.append(0)
             else:
                 #array.append(1 -d / 200.0)
-                array.append(np.exp(-(d / 100.0)**2))
+                array.append(np.exp(-(5 * d / 200.0)))
         
         
 
-        for idxs in [range(0, 9), range(9, 11), range(13, 15), range(16, 18), range(18, 20), range(21, 23), range(25, 27), range(27, 36)]:
+        for idxs in [range(0, 9), range(9, 11), range(13, 15), [16], [17], [18], [19], range(21, 23), range(25, 27), range(27, 36)]:
             d = min([carstate.opponents[j] for j in idxs])
             if d > 199.8:
                 array.append(0)
             else:
-                array.append(np.exp(-(1.5*d / self.threshold)**1.5))
+                array.append(np.exp(-(3*d / self.threshold)**1.3))
         
         return np.array(array)
     
@@ -71,7 +71,7 @@ class OpponentsLayer2(RacerLayer2):
             accelerator = 0
             brake = 0
             
-            if min(carstate.distances_from_edge[7:12]) > 100:
+            if carstate.distances_from_edge[9] > 100:
                 accelerator = 1
             elif output[0] > 0:
                 accelerator = output[0]
@@ -89,7 +89,6 @@ class OpponentsLayer2(RacerLayer2):
     
         except:
             print('Error!')
-            self.saveResults()
             raise
     
         return True

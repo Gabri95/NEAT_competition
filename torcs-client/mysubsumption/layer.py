@@ -15,7 +15,16 @@ class Layer(ABC):
     @abstractmethod
     def applicable(self, carstate):
         pass
+
+    def shift(self, carstate, command):
+        if command.gear >= 0 and command.brake < 0.1 and carstate.rpm > 8000:
+            command.gear = min(6, command.gear + 1)
     
+        if carstate.rpm < 2500 and command.gear > 1:
+            command.gear = command.gear - 1
+    
+        if not command.gear:
+            command.gear = carstate.gear or 1
     
     def steer(self, left, right, carstate : State, command : Command):
         command.steering = left - right
@@ -24,3 +33,5 @@ class Layer(ABC):
         command.accelerator = acceleration
         command.gear = carstate.gear
         command.brake = brake
+
+        self.shift(carstate, command)

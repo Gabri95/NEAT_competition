@@ -71,7 +71,6 @@ class RacerLayer1(Layer):
                     
         except:
             print('Error!')
-            self.saveResults()
             raise
         
         return True
