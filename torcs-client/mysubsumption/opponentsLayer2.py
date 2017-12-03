@@ -3,10 +3,10 @@ sys.path.insert(0, '../')
 
 from pytocl.car import State, Command
 import numpy as np
-from mysubsumption.racerLayer2 import RacerLayer2
+from mysubsumption.racerLayer4 import RacerLayer4
 import math
 
-class OpponentsLayer2(RacerLayer2):
+class OpponentsLayer2(RacerLayer4):
     
     def __init__(self, model_path, threshold=20):
         super(OpponentsLayer2, self).__init__(model_path)
@@ -36,7 +36,8 @@ class OpponentsLayer2(RacerLayer2):
         
         
 
-        for idxs in [range(0, 9), range(9, 11), range(13, 15), [16], [17], [18], [19], range(21, 23), range(25, 27), range(27, 36)]:
+        #for idxs in [range(0, 9), range(9, 11), range(13, 15), range(16, 18), range(18, 20), range(21, 23), range(25, 27), range(27, 36)]:
+        for idxs in [range(9, 11), range(13, 15), range(16, 18), range(18, 20), range(21, 23), range(25, 27)]:
             d = min([carstate.opponents[j] for j in idxs])
             if d > 199.8:
                 array.append(0)
@@ -47,50 +48,4 @@ class OpponentsLayer2(RacerLayer2):
     
     
     def applicable(self, carstate: State):
-        return min(carstate.opponents) < self.threshold
-
-    def step(self, carstate: State, command: Command):
-    
-        if carstate.gear <= 0:
-            carstate.gear = 1
-    
-        input = self.processInput(carstate)
-    
-        if np.isnan(input).any():
-            return False
-    
-        try:
-            output = self.model.activate(input)
-        
-            for i in range(len(output)):
-                if np.isnan(output[i]):
-                    output[i] = 0.0
-        
-            print('Out = ' + str(output))
-        
-            accelerator = 0
-            brake = 0
-            
-            if carstate.distances_from_edge[9] > 100:
-                accelerator = 1
-            elif output[0] > 0:
-                accelerator = output[0]
-            else:
-                brake = -1 * output[0]
-        
-            self.accelerate(accelerator, brake, carstate, command)
-        
-            if len(output) == 2:
-                # use this if the steering is just one output
-                self.steer(output[1], 0, carstate, command)
-            else:
-                # use this command if there are 2 steering outputs
-                self.steer(output[1], output[2], carstate, command)
-    
-        except:
-            print('Error!')
-            raise
-    
-        return True
-
-
+        return min(carstate.opponents[9:27]) < self.threshold

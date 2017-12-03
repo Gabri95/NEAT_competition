@@ -1,15 +1,11 @@
 
-
-[WARNING: NOT UPDATED!!!]
-
 Starting from the main directory of the project (we will call it <maindir>):
 
 
 
 - To train the model:
     
-    python src/nn_evolve.py -g <generations> -f <frequency> -p <port> -o <outputdir> -d <driver> [-c <checkpoint>] [-u] [-s] [-t <timelimit>]
-    
+    python src/nn_evolve.py -g <generations> -f <frequency> -p <port> -o <outputdir> [-c <checkpoint>]
     
     -g <generations>:   by default is 10 if not specified
     
@@ -26,6 +22,8 @@ Starting from the main directory of the project (we will call it <maindir>):
     -p <port>:          port to use for making the server and the client communicate (it has to be in the range [3001, 3010]).
                         Moreover, it has to be the one corresponding to the "src_server" driver set in the "configuration.xml" file.
                         (N.B.: make sure the port is available)
+
+
 
     -d <driver>:        it has to be one of the following {"Driver1", "Driver2", "Driver3"} which correspond to the omonymous subclasses of
                         "my_driver" in the omonymous file in the "torcs-client" directory. Precisely:
@@ -48,16 +46,15 @@ Starting from the main directory of the project (we will call it <maindir>):
                         If not set, only the last entry of the results is considered, i.e. only the final result at the end of the race.
 
 
-N.B.: by default the script expect a number of file to be present in <outputdir> but it is possible to pass their path through the "-e", "-n" and "-x" options.
+
+
+
+N.B.: by default the script expect a number of file to be present in <outputdir> but it is possible to pass their path through the "-d", "-e", "-n" and "-x" options.
 However, it is much more encouraged to use the following approach to run an experiment:
 
     - build the directory of the experiment. It will be out <outputdir>
-    - create inside the following 3 files: 'configuration.xml', 'nn_config', 'fitness.py'
+    - create inside the following 3 files: 'nn_config', 'fitness.py', 'subsumption.template' and the following directory: 'configuration'
 
-        + 'configuration.xml':  XML file containing the configuration for the race. Make sure that there is a "src_server" driver among the 
-                                drivers  and that its "idx" correspond to the <port> you want to use (idx=0 -> port=3001, ..., idx=8 -> port=3009).
-                                Here, you can also set the track, either the number of laps or the length of the race (in km) and the other
-                                where the opponents which will race against your driver.
         + 'nn_config':          file containing the configurations of the NEAT algorithm. Make sure the number of "input" and "output" correspond
                                 to the inputs you are actually considering and to the outputs that the driver you set expects. Here, you can also
                                 set other parameters as the size of the population, the kind of initializzation of the genomes, which activation
@@ -75,13 +72,34 @@ However, it is much more encouraged to use the following approach to run an expe
                                                                 Hence, make sure the length of that list is equal to the number of output neuron 
                                                                 you set. If this parameter is not set, the activation functions set in 
                                                                 "activation_functions" will be used.
-
-        + 'fitness.py':         Python file which has to contain a function with name "evaluate" and accepting two parameters: (values, timelimit).
-                                    "values" is a list of entries: each entry is a list of values stored by the client 100 steps (and at the end 
-                                    of the simulation). 
-                                    "timelimit" is the value <timelimit> you set when you launched "nn_evolve.py".
+        
+        + 'subsumption.template': configuration file in IDI format which explains how the driver is built (following a subsumption scructure).
+                                  You have to use as the title of the sections (strings between the '[]') 'Layer <N>', where <N> is the number of 
+                                  the layer from the bottom of the subsumption structure you are defining (counting starts from 1).
+                                  Each layer/section has 1 or 2 otpions:
+                                     - 'type' specifies the name of the python class which implements the desired layer
+                                     - 'model_path' specifies the path (N.B.: relative to the path of the folder containing this file) to the 
+                                                    model (usually a Pickle file) which is used in this layer. Please, notice not all layers 
+                                                    require it (eg. UnstuckLayer doesn't). If present, set this parameter to '$phenotype' to make
+                                                    the training algorithm set it dynamically with the path to the next phenotype to evaluate.
+        
+        + 'fitness.py':         Python file which has to contain a function with name "evaluate" and accepting one parameter (results).
+                                This parameters will be a dictionary with:
+                                - keys:     the names of the races run (corresponds to the name of the configuration files without the extension;
+                                            see next point 'configuration')
+                                - values:   a list of entries relative at that race. Each entry is a list of values stored by the client every 100
+                                            steps (and at the end of the simulation). 
                                 This function has to return a scalar value representing the fitness of a genome given these data about its 
-                                performances on a race.
+                                performances on the races.
+                                
+        - 'configuration':      directory containing a number of XML files, each describing the configuration for a race. Make sure that there is 
+                                a "scr_server" driver among the drivers and that its "idx" correspond to the <port> you want to use
+                                (idx=0 -> port=3001, ..., idx=8 -> port=3009).
+                                Here, you can also set the track, either the number of laps or the length of the race (in km) and the opponents
+                                which will race against your driver. The name of each file, without the extension, will be used to indicate the 
+                                corresponding race in the logs and in the records of the race.
+        + 'configuration.xml':  if you just need to run a race you can instead use only one configuration file with this name in the <output_dir> 
+                                (instead of the 'configuration' directory)
         
         N.B.: It is strongly suggested to use the example files provided and edit them to use your own fitness fuction/track/network shape/ etc..
     
@@ -110,18 +128,21 @@ However, it is much more encouraged to use the following approach to run an expe
     
        cd torcs-client
        
-       ./start.sh -p 300[n] -w <model> -d <driver> [-o <results_file>] [-u] [-s]
+       ./start.sh -p 300[n] -d <driver_config> [-o <results_file>]
        
-       <model>:             pickle file containing the controller for the car
-                            use the file 'best.pickle' in the directory (<outputdir>) of one of your experiments to try the
-                            best model found by the NEAT algorithm so far in that experiment
+       <driver_config>:     configuration file as the 'subsumption.template' file explained before.
+                            It has to contain all the information to build a driver (N.B.: obviously you can't use '$phenotype' here anymore, but 
+                            you have to set the path to the pickle file you want to use, containing the controller for the layer).
+                            It can be useful to create a 'best.conf' file in your experiment folder equal to the 'subsumption.template' but 
+                            setting the path of the model to 'best.pickle'. This file is automatically created by the algorithm at the end of each 
+                            generation in the experiment directory (<outputdir>).
             
        <results_file>:      path to the file where to store the final results of the race
                             (the information which usually are used to compute the fitness function)
-                            During the experiments it is set to '<outputdir>/model_results/test_results'.
+                            During the experiments it is set to '<outputdir>/model_results/<results_[someID]>'.
                             However, you probably don't want to set it now, so just skip it.
 
-       The other parameters have the same meaning as the ones explained at the beginning for the "nn_evolve.py" script.
+       The other parameter (-p) has the same meaning as the one explained at the beginning for the "nn_evolve.py" script.
        
 
                             

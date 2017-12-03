@@ -57,7 +57,7 @@ class RacerLayer4(RacerLayer2):
             accelerator = 0
             brake = 0
 
-            if carstate.distances_from_edge[9] > 100:
+            if carstate.distances_from_edge[9] > 150:
                 accelerator = 1
             elif output[0] > 0:
                 accelerator = output[0]

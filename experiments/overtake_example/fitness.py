@@ -45,6 +45,9 @@ def retrieveFromTimelimit(values, timelimit):
     last_result = []
     later_time = 0
     
+    if values is None:
+        return []
+    
     for val in values:
         if np.isnan(val).any() or (timelimit is not None and val[0] > timelimit):
             break

@@ -16,7 +16,7 @@ class UnstuckLayer(Layer):
         
         min_dist = min(carstate.distances_from_edge)
         if carstate.speed_x < 2 \
-                and (math.fabs(carstate.distance_from_center) >= 0.95 or (min_dist < 1.5 and min_dist >= 0)) \
+                and (math.fabs(carstate.distance_from_center) >= 0.95 or (min_dist < 1 and min_dist >= 0)) \
                 and math.fabs(carstate.angle) > 15 \
                 and carstate.angle * carstate.distance_from_center < 0:
             self.stuck_count += 1

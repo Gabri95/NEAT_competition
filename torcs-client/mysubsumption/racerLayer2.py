@@ -23,7 +23,7 @@ class RacerLayer2(Layer):
         array.append(carstate.angle / 180.0)
     
         array.append(carstate.speed_x / 50.0)
-        array.append(carstate.speed_y / 40.0)
+        #array.append(carstate.speed_y / 40.0)
     
         for idxs in [[0], [2], [4], [7, 9, 11], [14], [16], [18]]:
             d = min([carstate.distances_from_edge[j] for j in idxs])
