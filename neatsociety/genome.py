@@ -412,15 +412,15 @@ class Genome(object):
 
         # read the first line
         header = file.readline()
-        inpt, out, hidd = (int(n) for n in header[1:].split(','))
+        inpt, out, hidd, bias = (int(n) for n in header[1:].split(','))
         
-        # Matrix containing the connections from each neuron (input, hidden or output) to each hidden or output neuron.
-        # As a result, the size has to be (H+O)*(I+H+O).
-        # Moreover, the neurons have to be in the following order: input, output, hidden.
+        # Matrix containing the connections from each neuron (input, bias, hidden or output) to each hidden or output neuron.
+        # As a result, the size has to be (H+O)*(I+H+O+B).
+        # Moreover, the neurons have to be in the following order: input, output, hidden, bias.
         connections = np.genfromtxt(filename, skip_header=1)
 
         assert (hidd + out) == connections.shape[0], "Error! Shape of the parameters not valid!"
-        assert (inpt + hidd + out) == connections.shape[1], "Error! Shape of the parameters not valid!"
+        assert (inpt + hidd + out + bias) == connections.shape[1], "Error! Shape of the parameters not valid!"
         
         self.add_hidden_nodes(hidd)
         
@@ -430,6 +430,20 @@ class Genome(object):
                     innovation_id = innovation_indexer.get_innovation_id(i, o)
                     cg = self.config.conn_gene_type(innovation_id, i, o, float(connections[o, i]), True)
                     self.conn_genes[cg.key] = cg
+        
+        if bias > 0:
+            #retrieve the index of the bias
+            b = inpt + hidd + out
+            
+            #set the bias to every node connected to it
+            for o in range(hidd + out):
+                if connections[o, b] is not None:
+                    self.node_genes[o].bias = connections[o, b]
+        
+        for n_id, node in self.node_genes.items():
+            node.response = 1
+        
+        
 
 
 class FFGenome(Genome):
