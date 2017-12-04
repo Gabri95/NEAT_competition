@@ -2,6 +2,8 @@ experiments/*
 !experiments/experiment_example
 !experiments/test_initialization
 !experiments/overtake_example
+!experiments/overtake_todo
+!experiments/dirt_todo
 src/__pycache__
 torcs-client/__pycache__
 torcs-client/pytocl/__pycache__

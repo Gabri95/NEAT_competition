@@ -16,6 +16,7 @@ from mysubsumption.opponentsLayer1 import OpponentsLayer1
 from mysubsumption.opponentsRacerLayer1 import OpponentsRacerLayer1
 from mysubsumption.opponentsLayer2 import OpponentsLayer2
 from mysubsumption.opponentsRacerLayer2 import OpponentsRacerLayer2
+from mysubsumption.opponentsRacerLayer3 import OpponentsRacerLayer3
 
 
 from configparser import ConfigParser
@@ -31,7 +32,8 @@ layers_type = {
     'OpponentsLayer1' : OpponentsLayer1,
     'OpponentsRacerLayer1' : OpponentsRacerLayer1,
     'OpponentsLayer2' : OpponentsLayer2,
-    'OpponentsRacerLayer2' : OpponentsRacerLayer2
+    'OpponentsRacerLayer2' : OpponentsRacerLayer2,
+    'OpponentsRacerLayer3' : OpponentsRacerLayer3
 }
 
 

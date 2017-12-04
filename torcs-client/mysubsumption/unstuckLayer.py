@@ -16,7 +16,7 @@ class UnstuckLayer(Layer):
         
         min_dist = min(carstate.distances_from_edge)
         if carstate.speed_x < 2 \
-                and (math.fabs(carstate.distance_from_center) >= 0.95 or (min_dist < 1 and min_dist >= 0)) \
+                and (math.fabs(carstate.distance_from_center) >= 0.93 or (min_dist < 1 and min_dist >= 0)) \
                 and math.fabs(carstate.angle) > 15 \
                 and carstate.angle * carstate.distance_from_center < 0:
             self.stuck_count += 1
@@ -26,11 +26,11 @@ class UnstuckLayer(Layer):
         return self.stuck_count > 100
 
     def step(self, carstate: State, command: Command):
-        command.accelerator = min(1, carstate.distance_from_center ** 4)
+        command.accelerator = min(1, (carstate.distance_from_center - 0.2) ** 4)
         command.gear = -1
         command.brake = 0.0
         command.clutch = 0.0
-        command.steering = -1 * carstate.angle * np.pi / (180.0 * 0.785398)
+        command.steering = -1 * carstate.angle * np.pi / (180.0 * 0.785398) *1.5
         
         return True
     

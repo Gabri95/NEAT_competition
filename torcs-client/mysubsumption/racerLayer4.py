@@ -30,8 +30,8 @@ class RacerLayer4(RacerLayer2):
             elif d > 199.8:
                 array.append(0)
             else:
-                #array.append(1 -d / 200.0)
-                array.append(np.exp(-(d / 100.0)**2))
+                array.append(1 -d / 200.0)
+                #array.append(np.exp(-(5 * d / 200.0)))
         
         return np.array(array)
 
@@ -56,10 +56,8 @@ class RacerLayer4(RacerLayer2):
         
             accelerator = 0
             brake = 0
-
-            if carstate.distances_from_edge[9] > 150:
-                accelerator = 1
-            elif output[0] > 0:
+            
+            if output[0] > 0:
                 accelerator = output[0]
             else:
                 brake = -1 * output[0]
