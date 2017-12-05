@@ -154,7 +154,7 @@ class SubsumptionDriver(Driver):
         self.z = carstate.z
         self.race_position = carstate.race_position
 
-        self.offroad_penalty += (max(0, math.fabs(carstate.distance_from_center) - 0.95)) ** 2
+        self.offroad_penalty += (max(0, math.fabs(carstate.distance_from_center) - 0.985)) ** 2
 
         self.iterations_count += 1
 
@@ -187,7 +187,7 @@ class SubsumptionDriver(Driver):
             print('estimated distance raced = ',
                   (self.time + self.curr_time) * self.avg_speed / self.iterations_count)
         print('distance raced = ', carstate.distance_raced)
-        # print('distances = ', carstate.distances_from_edge)
+        print('min distances = ', min(carstate.distances_from_edge))
         print('distance center = ', carstate.distance_from_center)
 
         print('projected speed =', self.projected_speed)

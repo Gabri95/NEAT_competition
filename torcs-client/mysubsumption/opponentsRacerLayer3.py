@@ -43,7 +43,9 @@ class OpponentsRacerLayer3(RacerLayer2):
                 array.append(0)
             else:
                 #array.append(np.exp(-(3 * d / self.threshold) ** 1.3))
-                array.append(0.2*np.log(1 + np.exp(5*(1 -d / self.threshold))))
+                #r = 10
+                array.append(max(0, 1 - d/(self.threshold*1.5)))
+                #array.append(1.0 / r * np.log(1 + np.exp(r * (1 - d / self.threshold))))
         
         return np.array(array)
     

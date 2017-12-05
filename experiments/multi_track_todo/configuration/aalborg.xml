@@ -46,7 +46,6 @@
   <section name="Drivers">
     <attnum name="maximum number" val="40"/>
     <section name="1">
-    <section name="1">
       <attnum name="idx" val="2"/>
       <attstr name="module" val="scr_server"/>
     </section>
