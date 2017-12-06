@@ -196,6 +196,6 @@ def draw_net(genome, view=False, filename=None, node_names=None, show_disabled=T
             style = 'solid' if cg.enabled else 'dotted'
             color = 'green' if cg.weight > 0 else 'red'
             width = str(0.1 + abs(cg.weight / 5.0))
-            dot.edge(a, b, _attributes={'style': style, 'color': color, 'penwidth': width, 'label': str(cg.weight)})
+            dot.edge(a, b, _attributes={'style': style, 'color': color, 'penwidth': width}) #, 'label': str(cg.weight)})
 
     return dot.render(filename, view=view)

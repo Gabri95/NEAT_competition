@@ -13,7 +13,7 @@
   <section name="Tracks">
     <attnum name="maximum number" val="1"/>
     <section name="1">
-      <attstr name="name" val="aalborg"/>
+      <attstr name="name" val="eroad"/>
       <attstr name="category" val="road"/>
     </section>
 
@@ -31,10 +31,10 @@
     <attstr name="type" val="race"/>
     <attstr name="starting order" val="drivers list"/>
     <attstr name="restart" val="yes"/>
-    <attnum name="laps" val="0"/>
+    <attnum name="laps" val="1"/>
     <section name="Starting Grid">
       <attnum name="rows" val="2"/>
-      <attnum name="distance to start" val="1200"/>
+      <attnum name="distance to start" val="25"/>
       <attnum name="distance between columns" val="30"/>
       <attnum name="offset within a column" val="15"/>
       <attnum name="initial speed" val="0"/>
@@ -50,7 +50,7 @@
       <attstr name="module" val="sparkle"/>
     </section>
 
-    <section name="2">
+    <section name="3">
       <attnum name="idx" val="2"/>
       <attstr name="module" val="berniw2"/>
     </section>
@@ -60,8 +60,8 @@
       <attstr name="module" val="bt"/>
     </section>
     
-        <section name="3">
-      <attnum name="idx" val="2"/>
+        <section name="2">
+      <attnum name="idx" val="3"/>
       <attstr name="module" val="scr_server"/>
     </section>
 

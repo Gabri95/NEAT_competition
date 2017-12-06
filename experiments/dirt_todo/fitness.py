@@ -2,9 +2,13 @@
 import math
 import numpy as np
 
+        
+
+
 tracks = {
 
-'dirt-4': {'timelimit': None, 'lenght' : 3260, 'laps': 2}
+'dirt-4': {'timelimit': None},
+'dirt-1': {'timelimit': None}
 }
 
 
@@ -18,7 +22,7 @@ def evaluate(results):
         record = retrieveFromTimelimit(results[name], params['timelimit'])
     
         if len(record) == 0:
-            fitness += 1.5*params['laps']*params['lenght'] -200 -1500
+            fitness += -9000
         else:
             duration, distance, laps, distance_from_start, damage, avg_penalty, avg_speed, race_position, distFromLeader, avgDistFromLeader, penalty = record[:11]
             print('\t', name, ':')
@@ -31,9 +35,8 @@ def evaluate(results):
             print('\t\tPenalty = ', penalty)
             print('\t\tAvgPenalty = ', avg_penalty)            
             print('\t\tAvgSpeed = ', avg_speed)
-            
-            fitness += distFromLeader + avgDistFromLeader - 50*(race_position -1) - 50*avg_penalty
-        
+
+            fitness += distance + 10*avg_speed - 40*penalty #- 0.05*damage
 
     return fitness
     

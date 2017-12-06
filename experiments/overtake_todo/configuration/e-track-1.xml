@@ -50,7 +50,7 @@
       <attstr name="module" val="sparkle"/>
     </section>
 
-    <section name="2">
+    <section name="3">
       <attnum name="idx" val="2"/>
       <attstr name="module" val="berniw2"/>
     </section>
@@ -60,8 +60,8 @@
       <attstr name="module" val="bt"/>
     </section>
     
-        <section name="3">
-      <attnum name="idx" val="2"/>
+        <section name="2">
+      <attnum name="idx" val="3"/>
       <attstr name="module" val="scr_server"/>
     </section>
 

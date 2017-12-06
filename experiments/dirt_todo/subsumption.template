@@ -1,7 +1,7 @@
 
 [Layer1]
 
-type        =       OpponentsRacerLayer3
+type        =       RacerLayer2
 model_path  =       $phenotype
 
 

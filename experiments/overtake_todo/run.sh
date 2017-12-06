@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ROOT=../..
-PORT=3003
+PORT=3004
 
 
 

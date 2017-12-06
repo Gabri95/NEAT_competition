@@ -6,8 +6,8 @@ tracks = {
 
 'forza': {'timelimit': None, 'length': 1500},
 'e-track-1': {'timelimit': None, 'length': 1500},
-'michigan': {'timelimit': None, 'length': 1500},
-'aalborg': {'timelimit': None, 'length': 1500}
+'g-speedway': {'timelimit': None, 'length': 1500},
+'eroad': {'timelimit': None, 'length': 1500},
 }
 
 
@@ -21,7 +21,7 @@ def evaluate(results):
         record = retrieveFromTimelimit(results[name], params['timelimit'])
     
         if len(record) == 0:
-            fitness += 1500 -1000 -500 -500 -2000
+            fitness += 1500 -1000 -500 -500 -3000
         else:
             duration, distance, laps, distance_from_start, damage, avg_penalty, avg_speed, race_position, distFromLeader, avgDistFromLeader, penalty = record[:11]
             print('\t', name, ':')
@@ -35,7 +35,7 @@ def evaluate(results):
             print('\t\tAvgPenalty = ', avg_penalty)            
             print('\t\tAvgSpeed = ', avg_speed)
 
-            fitness += (distFromLeader + avgDistFromLeader) + 2*avg_speed - 100*(race_position -1) - 100*avg_penalty - damage
+            fitness += (distFromLeader + avgDistFromLeader) + 20*avg_speed - 100*(race_position -1) - 25*penalty #- 0.15*damage
         
 
     return fitness

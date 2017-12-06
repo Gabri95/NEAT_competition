@@ -5,6 +5,7 @@ import time as tm
 import sys
 import os.path
 import numpy as np
+import pickle
 
 
 from mysubsumption.racerLayer1 import RacerLayer1
@@ -19,10 +20,6 @@ from mysubsumption.opponentsRacerLayer2 import OpponentsRacerLayer2
 from mysubsumption.opponentsRacerLayer3 import OpponentsRacerLayer3
 from mysubsumption.opponentsRacerLayer4 import OpponentsRacerLayer4
 
-
-from mysubsumption.racerLayer import RacerLayer
-from mysubsumption.opponentsLayer import OpponentsLayer
-from mysubsumption.opponentsLayer import OpponentsRacerLayer
 
 from configparser import ConfigParser
 
@@ -39,27 +36,28 @@ layers_type = {
     'OpponentsLayer2' : OpponentsLayer2,
     'OpponentsRacerLayer2' : OpponentsRacerLayer2,
     'OpponentsRacerLayer3' : OpponentsRacerLayer3,
-    'OpponentsRacerLayer4' : OpponentsRacerLayer4,
-    'OpponentsRacerLayer' : OpponentsRacerLayer,
-    'OpponentsLayer' : OpponentsLayer,
-    'RacerLayer' : RacerLayer
+    'OpponentsRacerLayer4' : OpponentsRacerLayer4
 }
 
 
 
-class SubsumptionDriver(Driver):
+class GeneralDriver(Driver):
     def __init__(self, driver_config, out_file=None):
-        super(SubsumptionDriver, self).__init__(logdata=False)
+        super(GeneralDriver, self).__init__(logdata=False)
 
         self.out_file = out_file
         
-        self.layers = parseConfiguration(driver_config)
-        self.size = len(self.layers)
+        self.layers, self.oracle = parseConfiguration(driver_config)
+        self.current_model = 0
+        self.oracle_predictions = 0
         
-        if self.size == 0:
-            raise Exception('Error! No layer set!')
+        if self.oracle is None:
+            raise Exception('Error! No oracle set!')
+        for i, l in enumerate(self.layers):
+            if len(l) == 0:
+                raise Exception('Error! No layers set in model' + str(i+1)+ '!')
         
-
+        
         self.last_lap_time = 0
         self.curr_time = -10.0
         self.time = 0.0
@@ -84,6 +82,7 @@ class SubsumptionDriver(Driver):
         print('Driver initialization completed')
         
 
+
     def drive(self, carstate: State) -> Command:
         
         print('Drive')
@@ -91,26 +90,28 @@ class SubsumptionDriver(Driver):
         self.print_log(carstate)
         
         self.update(carstate)
+
+        self.oracle_predictions += self.oracle.predict([carstate.rpm, carstate.speed_x, carstate.speed_y, carstate.speed_z] + carstate.wheel_velocities)
+        
+        if self.iterations_count % 100 == 0:
+            self.current_model = int(round(self.oracle_predictions/100.0))
+            self.oracle_predictions = 0
+        
+        model = self.layers[self.current_model]
         
         try:
             
             command = Command()
             
-            l = self.size -1
+            l = len(model) - 1
             
-            while not self.layers[l].applicable(carstate) and l >= 0:
+            while not model[l].applicable(carstate) and l >= 0:
                 l -= 1
             
             if l < 0:
                 print('Error!!! No layer applicable!!!!!')
             else:
-                print('Using layer', l)
-                self.layers[l].step(carstate, command)
-                
-                #while l >= 0:
-                #   self.layers[l].step(carstate, Command())
-                #   l -= 1
-                
+                model[l].step(carstate, command)
                 
         except:
             print('Error!')
@@ -242,39 +243,53 @@ def get_velocity(speed_x, speed_y):
 
 def parseConfiguration(parameters_file):
     
-    layers = []
+    
     
     with open(parameters_file) as f:
         parameters = ConfigParser()
         parameters.read_file(f)
         
-        l = 1
+        oracle_path = parameters.get('Oracle', 'path')
+
+        oracle = pickle.load(open(oracle_path, "rb"))
         
-        while parameters.has_section('Layer' + str(l)):
-            print('Parsing layer'+str(l))
+        
+        models = []
+        i=1
+        while parameters.has_option('Oracle', 'model'+str(i)):
+            models.append(parameters.get('Oracle', 'model'+str(i)).strip().split())
+            i += 1
+        
+        layers = []
+        
+        for i, model in enumerate(models):
+            current_layers = []
             
-            layer_name = parameters.get('Layer' + str(l), 'type')
-            
-            if layer_name in layers_type:
-                if parameters.has_option('Layer' + str(l), 'model_path'):
-                    
-                    path = parameters.get('Layer' + str(l), 'model_path')
-                    
-                    #the path in the configuration file are relative to the configuration file
-                    path = os.path.join(os.path.dirname(parameters_file), path)
-                    
-                    layer = layers_type[layer_name](path)
-                else:
-                    layer = layers_type[layer_name]()
+            for m in model:
+                print('Model' + str(i) +', parsing layer:', m)
                 
-                layers.append(layer)
-            else:
-                message = "Error! Layer {} in section {} doesn't exists!".format(layer_name, 'layer' + str(l))
-                print(message)
-                raise Exception(message)
-            
-            l += 1
-        
-        print(l -1, 'layers set in the configuration file')
+                layer_name = parameters.get(m, 'type')
     
-    return layers
+                if layer_name in layers_type:
+                    if parameters.has_option(m, 'model_path'):
+                        path = parameters.get(m, 'model_path')
+                        # the path in the configuration file are relative to the configuration file
+                        path = os.path.join(os.path.dirname(parameters_file), path)
+                        layer = layers_type[layer_name](path)
+                    else:
+                        layer = layers_type[layer_name]()
+
+                    current_layers.append(layer)
+                else:
+                    message = "Error! Layer {} in section {} doesn't exists!".format(layer_name, 'layer' + str(l))
+                    print(message)
+                    raise Exception(message)
+            
+            layers.append(current_layers)
+        
+        print(len(models), 'models with:')
+        for l in layers:
+            print('\t', len(l), 'layers')
+        
+        return layers, oracle
+        

@@ -26,17 +26,18 @@ class RacerLayer1(Layer):
         array.append(carstate.angle / 180.0)
     
         array.append(carstate.speed_x / 50.0)
-        array.append(carstate.speed_y / 40.0)
-    
+        #array.append(carstate.speed_y / 40.0)
+
+        array.append(carstate.distance_from_center)
+        
         for idxs in [[0], [2], [4], [7, 9, 11], [14], [16], [18]]:
             d = min([carstate.distances_from_edge[j] for j in idxs])
             if math.fabs(carstate.distance_from_center) > 1 or d < 0:
                 array.append(-1)
             else:
                 array.append(d / 200.0)
-    
-        array.append(carstate.distance_from_center)
-        
+                
+        #array.append(carstate.distance_from_center)
         return np.array(array)
 
     
