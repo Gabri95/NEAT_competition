@@ -7,7 +7,6 @@ import os.path
 import numpy as np
 import pickle
 
-
 from mysubsumption.racerLayer1 import RacerLayer1
 from mysubsumption.racerLayer2 import RacerLayer2
 from mysubsumption.racerLayer3 import RacerLayer3
@@ -21,9 +20,16 @@ from mysubsumption.opponentsRacerLayer3 import OpponentsRacerLayer3
 from mysubsumption.opponentsRacerLayer4 import OpponentsRacerLayer4
 
 
+from mysubsumption.unstuckLayer2 import UnstuckLayer2
+
+from mysubsumption.racerLayer import RacerLayer
+from mysubsumption.opponentsLayer import OpponentsLayer
+from mysubsumption.opponentsLayer import OpponentsRacerLayer
+
 from configparser import ConfigParser
 
 sys.path.insert(0, '../')
+
 
 layers_type = {
     'RacerLayer1' : RacerLayer1,
@@ -31,13 +37,18 @@ layers_type = {
     'RacerLayer3' : RacerLayer3,
     'RacerLayer4' : RacerLayer4,
     'UnstuckLayer' :UnstuckLayer,
+    'UnstuckLayer2' :UnstuckLayer2,
     'OpponentsLayer1' : OpponentsLayer1,
     'OpponentsRacerLayer1' : OpponentsRacerLayer1,
     'OpponentsLayer2' : OpponentsLayer2,
     'OpponentsRacerLayer2' : OpponentsRacerLayer2,
     'OpponentsRacerLayer3' : OpponentsRacerLayer3,
-    'OpponentsRacerLayer4' : OpponentsRacerLayer4
+    'OpponentsRacerLayer4' : OpponentsRacerLayer4,
+    'OpponentsRacerLayer' : OpponentsRacerLayer,
+    'OpponentsLayer' : OpponentsLayer,
+    'RacerLayer' : RacerLayer
 }
+
 
 
 
@@ -48,7 +59,7 @@ class GeneralDriver(Driver):
         self.out_file = out_file
         
         self.layers, self.oracle = parseConfiguration(driver_config)
-        self.current_model = 0
+        self.current_model = 1
         self.oracle_predictions = 0
         
         if self.oracle is None:
@@ -56,6 +67,8 @@ class GeneralDriver(Driver):
         for i, l in enumerate(self.layers):
             if len(l) == 0:
                 raise Exception('Error! No layers set in model' + str(i+1)+ '!')
+        
+        self.oracle.nthread = 2
         
         
         self.last_lap_time = 0
@@ -91,10 +104,12 @@ class GeneralDriver(Driver):
         
         self.update(carstate)
 
-        self.oracle_predictions += self.oracle.predict([carstate.rpm, carstate.speed_x, carstate.speed_y, carstate.speed_z] + carstate.wheel_velocities)
+        # if self.iterations_count % 10 == 0:
+        #     self.oracle_predictions += self.oracle.predict(np.array([carstate.rpm, carstate.speed_x, carstate.speed_y, carstate.speed_z] + list(carstate.wheel_velocities)).reshape(1, -1))[0]
         
         if self.iterations_count % 100 == 0:
-            self.current_model = int(round(self.oracle_predictions/100.0))
+            # self.current_model = int(round(self.oracle_predictions/10.0))
+            self.current_model = self.oracle.predict(np.array([carstate.rpm, carstate.speed_x, carstate.speed_y, carstate.speed_z] + list(carstate.wheel_velocities)).reshape(1, -1))[0]
             self.oracle_predictions = 0
         
         model = self.layers[self.current_model]
@@ -198,6 +213,7 @@ class GeneralDriver(Driver):
     def print_log(self, carstate):
         print(tm.ctime())
         print('iter = ', self.iterations_count)
+        print(' --- MODEL:', self.current_model, '---')
         # print('wheel velocities =', carstate.wheel_velocities)
         if self.iterations_count > 0:
             print('estimated distance raced = ',
@@ -251,7 +267,7 @@ def parseConfiguration(parameters_file):
         
         oracle_path = parameters.get('Oracle', 'path')
 
-        oracle = pickle.load(open(oracle_path, "rb"))
+        oracle = pickle.load(open(os.path.join(os.path.dirname(parameters_file), oracle_path), "rb"))
         
         
         models = []
@@ -281,7 +297,7 @@ def parseConfiguration(parameters_file):
 
                     current_layers.append(layer)
                 else:
-                    message = "Error! Layer {} in section {} doesn't exists!".format(layer_name, 'layer' + str(l))
+                    message = "Error! Layer {} in model {} doesn't exists!".format(layer_name, i+1)
                     print(message)
                     raise Exception(message)
             

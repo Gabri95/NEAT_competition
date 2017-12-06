@@ -7,8 +7,8 @@ stagnation_type      = PreserveBestStagnation
 reproduction_type    = DefaultReproduction
 
 [phenotype]
-input_nodes          = 16
-hidden_nodes         = 6
+input_nodes          = 17
+hidden_nodes         = 8
 output_nodes         = 2
 initial_connection   = partial 0.4
 max_weight           = +50
@@ -32,14 +32,14 @@ prob_mutate_response    = 0.8
 response_mutation_power = 0.5
 prob_mutate_weight      = 0.8
 prob_replace_weight     = 0.1
-weight_mutation_power   = 0.5
+weight_mutation_power   = 1.0
 prob_mutate_activation  = 0.004
 prob_toggle_link        = 0.01
 reset_on_extinction     = 1
 init_pop_size           = 70
 
 [genotype compatibility]
-compatibility_threshold = 2.0
+compatibility_threshold = 2.3
 excess_coefficient      = 1.0
 disjoint_coefficient    = 1.0
 weight_coefficient      = 0.5

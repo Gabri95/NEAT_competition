@@ -34,7 +34,8 @@ class OpponentsRacerLayer4(RacerLayer2):
         array.append(carstate.distance_from_center)
 
         #for idxs in [range(0, 9), range(9, 11), range(13, 15), range(16, 18), range(18, 20), range(21, 23), range(25, 27), range(27, 36)]:
-        for idxs in [range(9, 11), range(13, 15), range(16, 18), range(18, 20), range(21, 23), range(25, 27)]:
+        #for idxs in [range(9, 11), range(13, 15), range(16, 18), range(18, 20), range(21, 23), range(25, 27)]:
+        for idxs in [[10], [13], [16, 17], [18, 19], [22], [25]]:
             d = min([carstate.opponents[j] for j in idxs])
             if d > 199.8:
                 array.append(0)

@@ -18,7 +18,10 @@ from mysubsumption.opponentsLayer2 import OpponentsLayer2
 from mysubsumption.opponentsRacerLayer2 import OpponentsRacerLayer2
 from mysubsumption.opponentsRacerLayer3 import OpponentsRacerLayer3
 from mysubsumption.opponentsRacerLayer4 import OpponentsRacerLayer4
+from mysubsumption.opponentsRacerLayer5 import OpponentsRacerLayer5
 
+
+from mysubsumption.unstuckLayer2 import UnstuckLayer2
 
 from mysubsumption.racerLayer import RacerLayer
 from mysubsumption.opponentsLayer import OpponentsLayer
@@ -34,6 +37,7 @@ layers_type = {
     'RacerLayer3' : RacerLayer3,
     'RacerLayer4' : RacerLayer4,
     'UnstuckLayer' :UnstuckLayer,
+    'UnstuckLayer2' :UnstuckLayer2,
     'OpponentsLayer1' : OpponentsLayer1,
     'OpponentsRacerLayer1' : OpponentsRacerLayer1,
     'OpponentsLayer2' : OpponentsLayer2,
@@ -42,7 +46,8 @@ layers_type = {
     'OpponentsRacerLayer4' : OpponentsRacerLayer4,
     'OpponentsRacerLayer' : OpponentsRacerLayer,
     'OpponentsLayer' : OpponentsLayer,
-    'RacerLayer' : RacerLayer
+    'RacerLayer' : RacerLayer,
+    'OpponentsRacerLayer5' : OpponentsRacerLayer5
 }
 
 

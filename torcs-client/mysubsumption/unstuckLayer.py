@@ -28,7 +28,7 @@ class UnstuckLayer(Layer):
         return self.stuck_count > 100
 
     def step(self, carstate: State, command: Command):
-        command.accelerator = min(1, (carstate.distance_from_center - 0.2) ** 4)
+        command.accelerator = min(1, (carstate.distance_from_center - 0.2) ** 4) #2 - min(carstate.distances_from_edge)
         command.gear = -1
         command.brake = 0.0
         command.clutch = 0.0

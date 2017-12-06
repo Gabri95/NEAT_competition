@@ -1,12 +1,12 @@
 
 [Layer1]
 
-type        =       OpponentsRacerLayer4
+type        =       OpponentsRacerLayer5
 model_path  =       $phenotype
 
 
 
 [Layer2]
 
-type        =       UnstuckLayer
+type        =       UnstuckLayer2
 

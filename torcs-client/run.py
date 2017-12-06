@@ -43,6 +43,13 @@ if __name__ == '__main__':
         help='File where to print results.',
         type=str
     )
+
+    # parser.add_argument(
+    #     '-m',
+    #     '--mix',
+    #     help='Use the mixed model. Expected proper configuration file with oracle and the other models.',
+    #     action='store_true'
+    # )
     
     args, _ = parser.parse_known_args()
     
