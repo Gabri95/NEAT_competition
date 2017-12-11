@@ -189,15 +189,15 @@ class CompositeDriver():
             
             
             
-            print('ORACLE:', weights[1])
+            print('ORACLE:', weights[0])
             
             N = 50
             s = ''
             for i in range(N):
-                if i < int(weights[1]*N):
-                    s+='+'
+                if i < int(weights[0]*N):
+                    s+='0'
                 else:
-                    s+='-'
+                    s+='1'
             print(s)
             
             command = Command()
