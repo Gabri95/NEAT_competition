@@ -260,9 +260,14 @@ if __name__ == '__main__':
         '--client_start',
         help='Bash file to use to start the client. It has to be inside the torcs-client directory',
         type=str,
-        default=None
+        required=False
     )
     
     args, _ = parser.parse_known_args()
+    
+    if args.client_start is None:
+        del args.client_start
+    
+    print(args.__dict__)
     
     run(**args.__dict__)

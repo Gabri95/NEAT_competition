@@ -31,10 +31,10 @@
     <attstr name="type" val="race"/>
     <attstr name="starting order" val="drivers list"/>
     <attstr name="restart" val="yes"/>
-    <attnum name="laps" val="0"/>
+    <attnum name="laps" val="1"/>
     <section name="Starting Grid">
       <attnum name="rows" val="2"/>
-      <attnum name="distance to start" val="1700"/>
+      <attnum name="distance to start" val="25"/>
       <attnum name="distance between columns" val="20"/>
       <attnum name="offset within a column" val="10"/>
       <attnum name="initial speed" val="0"/>

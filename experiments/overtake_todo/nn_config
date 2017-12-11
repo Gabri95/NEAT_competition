@@ -7,8 +7,8 @@ stagnation_type      = PreserveBestStagnation
 reproduction_type    = DefaultReproduction
 
 [phenotype]
-input_nodes          = 17
-hidden_nodes         = 8
+input_nodes          = 18
+hidden_nodes         = 7
 output_nodes         = 2
 initial_connection   = partial 0.3
 max_weight           = +50
@@ -22,7 +22,7 @@ reevaluate           = 1
 [genetic]
 pop_size                = 75
 max_fitness_threshold   = 15000
-prob_add_conn           = 0.6
+prob_add_conn           = 0.65
 prob_add_node           = 0.6
 prob_delete_conn        = 0.25
 prob_delete_node        = 0.25

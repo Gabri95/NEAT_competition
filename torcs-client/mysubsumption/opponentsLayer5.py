@@ -3,10 +3,10 @@ sys.path.insert(0, '../')
 
 from pytocl.car import State, Command
 import numpy as np
-from mysubsumption.racerLayer2 import RacerLayer2
+from mysubsumption.racerLayerJesus3 import RacerLayerJesus3
 import math
 
-class OpponentsLayer5(RacerLayer2):
+class OpponentsLayer5(RacerLayerJesus3):
     
     def __init__(self, model_path, threshold=40):
         super(OpponentsLayer5, self).__init__(model_path)

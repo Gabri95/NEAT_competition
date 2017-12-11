@@ -19,6 +19,7 @@ from mysubsumption.opponentsRacerLayer2 import OpponentsRacerLayer2
 from mysubsumption.opponentsRacerLayer3 import OpponentsRacerLayer3
 from mysubsumption.opponentsRacerLayer4 import OpponentsRacerLayer4
 from mysubsumption.opponentsRacerLayer5 import OpponentsRacerLayer5
+from mysubsumption.opponentsRacerLayer6 import OpponentsRacerLayer6
 from mysubsumption.opponentsLayer4 import OpponentsLayer4
 from mysubsumption.opponentsLayer5 import OpponentsLayer5
 
@@ -33,13 +34,17 @@ from mysubsumption.racerLayer import RacerLayer
 from mysubsumption.opponentsLayer import OpponentsLayer
 from mysubsumption.opponentsLayer import OpponentsRacerLayer
 
+
+
+from mysubsumption.racerLayerJesus import RacerLayerJesus
+from mysubsumption.racerLayerJesus2 import RacerLayerJesus2
+from mysubsumption.racerLayerJesus3 import RacerLayerJesus3
+
 from configparser import ConfigParser
 
 sys.path.insert(0, '../')
 
-
 layers_type = {
-    'SimpleLayer' : SimpleLayer,
     'RacerLayer1' : RacerLayer1,
     'RacerLayer2' : RacerLayer2,
     'RacerLayer3' : RacerLayer3,
@@ -50,17 +55,21 @@ layers_type = {
     'OpponentsLayer1' : OpponentsLayer1,
     'OpponentsRacerLayer1' : OpponentsRacerLayer1,
     'OpponentsLayer2' : OpponentsLayer2,
-    'OpponentsLayer4' : OpponentsLayer4,
-    'OpponentsLayer5' : OpponentsLayer5,
     'OpponentsRacerLayer2' : OpponentsRacerLayer2,
     'OpponentsRacerLayer3' : OpponentsRacerLayer3,
     'OpponentsRacerLayer4' : OpponentsRacerLayer4,
     'OpponentsRacerLayer' : OpponentsRacerLayer,
     'OpponentsLayer' : OpponentsLayer,
-    'RacerLayer' : RacerLayer
+    'RacerLayer' : RacerLayer,
+    'OpponentsRacerLayer5' : OpponentsRacerLayer5,
+    'OpponentsRacerLayer6' : OpponentsRacerLayer6,
+    'RacerLayerJesus' : RacerLayerJesus,
+    'RacerLayerJesus3' : RacerLayerJesus3,
+    'RacerLayerJesus2': RacerLayerJesus2,
+    'SimpleLayer' : SimpleLayer,
+    'OpponentsLayer4' : OpponentsLayer4,
+    'OpponentsLayer5' : OpponentsLayer5
 }
-
-
 
 
 class CompositeDriver():
