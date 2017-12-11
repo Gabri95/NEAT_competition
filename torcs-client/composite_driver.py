@@ -33,17 +33,13 @@ from mysubsumption.racerLayer import RacerLayer
 from mysubsumption.opponentsLayer import OpponentsLayer
 from mysubsumption.opponentsLayer import OpponentsRacerLayer
 
-
-
-from mysubsumption.racerLayerJesus import RacerLayerJesus
-from mysubsumption.racerLayerJesus2 import RacerLayerJesus2
-from mysubsumption.racerLayerJesus3 import RacerLayerJesus3
-
 from configparser import ConfigParser
 
 sys.path.insert(0, '../')
 
+
 layers_type = {
+    'SimpleLayer' : SimpleLayer,
     'RacerLayer1' : RacerLayer1,
     'RacerLayer2' : RacerLayer2,
     'RacerLayer3' : RacerLayer3,
@@ -54,34 +50,29 @@ layers_type = {
     'OpponentsLayer1' : OpponentsLayer1,
     'OpponentsRacerLayer1' : OpponentsRacerLayer1,
     'OpponentsLayer2' : OpponentsLayer2,
+    'OpponentsLayer4' : OpponentsLayer4,
+    'OpponentsLayer5' : OpponentsLayer5,
     'OpponentsRacerLayer2' : OpponentsRacerLayer2,
     'OpponentsRacerLayer3' : OpponentsRacerLayer3,
     'OpponentsRacerLayer4' : OpponentsRacerLayer4,
     'OpponentsRacerLayer' : OpponentsRacerLayer,
     'OpponentsLayer' : OpponentsLayer,
-    'RacerLayer' : RacerLayer,
-    'OpponentsRacerLayer5' : OpponentsRacerLayer5,
-    'RacerLayerJesus' : RacerLayerJesus,
-    'RacerLayerJesus3' : RacerLayerJesus3,
-    'RacerLayerJesus2': RacerLayerJesus2,
-    'SimpleLayer' : SimpleLayer,
-    'OpponentsLayer4' : OpponentsLayer4,
-    'OpponentsLayer5' : OpponentsLayer5
+    'RacerLayer' : RacerLayer
 }
 
 
 
 
-class GeneralDriver():
+class CompositeDriver():
     def __init__(self, driver_config, out_file=None):
 
         self.out_file = out_file
         
-        self.layers = parseConfiguration(driver_config)
-        self.current_model = 1
+        self.toplayers, self.layers, self.oracle = parseConfiguration(driver_config)
         
-        self.offroad_counter = 0
         
+        if self.oracle is None:
+            raise Exception('Error! No oracle model set')
         for i, l in enumerate(self.layers):
             if len(l) == 0:
                 raise Exception('Error! No layers set in model' + str(i+1)+ '!')
@@ -121,63 +112,105 @@ class GeneralDriver():
         return -90, -75, -60, -45, -30, -20, -15, -10, -5, 0, 5, 10, 15, 20, \
                30, 45, 60, 75, 90
 
+    
+    def buildFeatures(self, carstate):
+    
+        array = list()
+    
+        array.append(carstate.angle / 180.0)
+    
+        array.append(carstate.speed_x / 50.0)
 
-    def runModel(self, model, carstate: State) -> Command:
-        command = Command()
+        array.append(carstate.distance_from_center)
+
+        array.append(self.avg_speed / self.iterations_count if self.iterations_count > 0 else 0)
+        array.append(carstate.race_position/10.0)
+        
+        for idxs in [[0], [3], [7], [9], [11], [13], [18]]:
+            d = min([carstate.distances_from_edge[j] for j in idxs])
+            if math.fabs(carstate.distance_from_center) > 1 or d < 0:
+                array.append(-1)
+            else:
+                array.append(d / 200.0)
+        
+        for idxs in [range(9, 16), range(16, 20), range(20, 27)]:
+            d = min([carstate.opponents[j] for j in idxs])
+            array.append(d/200.0)
     
-        l = len(model) - 1
+        return np.array(array)
+
     
-        while not model[l].applicable(carstate) and l >= 0:
+    
+    def runStack(self, carstate: State, command: Command, stack, stackname):
+        l = len(stack) - 1
+    
+        while l >= 0 and not stack[l].applicable(carstate):
             l -= 1
     
-        if l < 0:
-            print('Error!!! No layer applicable!!!!!')
+        if l >= 0:
+            print(stackname + ': USING LAYER', l)
+            stack[l].step(carstate, command)
+            return True
         else:
-            print('USING LAYER', l)
-            model[l].step(carstate, command)
+            return False
     
-        return command
-        
+    def runModel(self, carstate: State) -> Command:
     
-    def chooseModel(self, carstate: State):
-        #if math.fabs(carstate.distance_from_center) > 1.65:
-        #    self.current_model = 0
-
-
-        # delta_dist = carstate.distance_from_center - self.distance_from_center
-        # if carstate.distance_from_center < 0:
-        #     delta_dist *= -1
-
+        top_command = Command()
         
-        if carstate.distance_from_center * self.distance_from_center < 0:
-            delta_dist = -1*math.fabs(carstate.distance_from_center - self.distance_from_center)
+        if self.runStack(carstate, top_command, self.toplayers, 'TopLayers'):
+            return top_command
+        
         else:
-            delta_dist = math.fabs(carstate.distance_from_center) - math.fabs(self.distance_from_center)
+            commands = []
             
+            for i, model in enumerate(self.layers):
+                command = Command()
+                
+                if not self.runStack(carstate, command, model, 'model' + str(i+1)):
+                    print('Error!!! No layer applicable in model{}!!!!!'.format(i+1))
+                    
+                commands.append(command)
+                
+            
+            weight = self.oracle.activate(self.buildFeatures(carstate))
+            #weight = sigmoid(weight)
+            
+            weights = [weight[0], 1.0 - weight[0]]
+            
+            
+            
+            print('ORACLE:', weights[1])
+            
+            N = 50
+            s = ''
+            for i in range(N):
+                if i < int(weights[1]*N):
+                    s+='+'
+                else:
+                    s+='-'
+            print(s)
+            
+            command = Command()
+            for i, w in enumerate(weight):
+                command.accelerator = w * commands[i].accelerator * np.sign(commands[i].gear)
+                command.brake = w * commands[i].brake
+                command.steering = w * commands[i].steering
+            
+            self.shift(carstate, command)
+            
+            return command
 
-        self.distance_from_center = carstate.distance_from_center
-        
-        print('Delta dist', delta_dist)
-        
-        # if math.fabs(carstate.distance_from_center) > 1.6 and delta_damage < 50:
-        #     self.current_model = 0
-        projected_speed = get_projected_speed(carstate.speed_x, carstate.speed_y,carstate.angle)
-        
-        if math.fabs(carstate.distance_from_center) > 1.1 and delta_dist > 0.02:# and projected_speed < 50:
-            self.offroad_counter += 1
-        
-        elif math.fabs(carstate.distance_from_center) < 0.3:
-            self.offroad_counter -= 1
-
-        self.offroad_counter = min(500, max(-500*(1-self.current_model), self.offroad_counter))
-        
-        if self.offroad_counter > 20:
-            self.current_model = 0
-        # elif self.offroad_counter <= -500:
-        #     self.current_model = 1
-        
-        print('Change model counter', self.offroad_counter )
-        
+    def shift(self, carstate, command):
+        command.gear = max(1, carstate.gear)
+        if command.gear >= 0 and command.brake < 0.1 and carstate.rpm > 8000:
+            command.gear = min(6, command.gear + 1)
+    
+        if carstate.rpm < 2500 and command.gear > 1:
+            command.gear = command.gear - 1
+    
+        if not command.gear or carstate.gear <= 0:
+            command.gear = carstate.gear or 1
     
     def drive(self, carstate: State) -> Command:
 
@@ -187,22 +220,8 @@ class GeneralDriver():
 
         self.update(carstate)
 
-        self.chooseModel(carstate)
-
-        # commands = []
-        # for i, model in enumerate(self.layers):
-        #     try:
-        #         command = self.runModel(model, carstate)
-        #         commands.append(command)
-        #     except:
-        #         print('Error!')
-        #         self.saveResults()
-        #         raise
-        # command = commands[self.current_model]
-
-
         try:
-            command = self.runModel(self.layers[self.current_model], carstate)
+            command = self.runModel(carstate)
         except:
             print('Error!')
             self.saveResults()
@@ -284,21 +303,20 @@ class GeneralDriver():
     def print_log(self, carstate):
         print(tm.ctime())
         print('iter = ', self.iterations_count)
-        print(' --- MODEL:', self.current_model, '---')
         # print('wheel velocities =', carstate.wheel_velocities)
-        if self.iterations_count > 0:
-            print('estimated distance raced = ',
-                  (self.time + self.curr_time) * self.avg_speed / self.iterations_count)
-        print('distance raced = ', carstate.distance_raced)
+        # if self.iterations_count > 0:
+        #     print('estimated distance raced = ',
+        #           (self.time + self.curr_time) * self.avg_speed / self.iterations_count)
+        #print('distance raced = ', carstate.distance_raced)
         print('min distances = ', min(carstate.distances_from_edge))
         print('distance center = ', carstate.distance_from_center)
 
         print('projected speed =', self.projected_speed)
         print('vx = ', carstate.speed_x)
-        print('vy = ', carstate.speed_y)
+        #print('vy = ', carstate.speed_y)
         print('angle = ', carstate.angle)
 
-        print('AVG demage per meter', self.damage / math.fabs(self.distance) if self.distance != 0.0 else 0)
+        #print('AVG demage per meter', self.damage / math.fabs(self.distance) if self.distance != 0.0 else 0)
         # print('self curr_time', self.curr_time)
         # print('self dist from start', self.distance_from_start)
         # print('dist from start', carstate.distance_from_start)
@@ -311,10 +329,10 @@ class GeneralDriver():
         # print('rpm = ', carstate.rpm)
         # print('gear = ', carstate.gear)
         print('offroad penalty = ', self.offroad_penalty)
-        print('z = ', carstate.z)
+        #print('z = ', carstate.z)
 
         print('Distance from leader = ', carstate.distFromLeader)
-        print('Laps = ', self.laps)
+        #print('Laps = ', self.laps)
 
 
 
@@ -328,18 +346,46 @@ def get_velocity(speed_x, speed_y):
 
 
 
+def getLayer(parameters, model_section, directory):
+    
+    layer_name = parameters.get(model_section, 'type')
+    
+    if layer_name in layers_type:
+        if parameters.has_option(model_section, 'model_path'):
+            path = parameters.get(model_section, 'model_path')
+            # the path in the configuration file are relative to the configuration file
+            path = os.path.join(directory, path)
+            layer = layers_type[layer_name](path)
+        else:
+            layer = layers_type[layer_name]()
+        
+        return layer
+    else:
+        message = "Error! Layer {} doesn't exists!".format(layer_name)
+        print(message)
+        raise Exception(message)
+
+
+
+
 def parseConfiguration(parameters_file):
-    
-    
     
     with open(parameters_file) as f:
         parameters = ConfigParser()
         parameters.read_file(f)
         
-        #oracle_path = parameters.get('Oracle', 'path')
-        #oracle = pickle.load(open(os.path.join(os.path.dirname(parameters_file), oracle_path), "rb"))
-        
-        
+        oracle_path = parameters.get('Models', 'oracle')
+        oracle = pickle.load(open(os.path.join(os.path.dirname(parameters_file), oracle_path), "rb"))
+
+        toplayers = []
+        if parameters.has_option('Models', 'toplayers'):
+            names = parameters.get('Models', 'toplayers').strip().split()
+            
+            for layer_name in names:
+                print('TopLayers, parsing layer:', layer_name)
+                toplayers.append(getLayer(parameters, layer_name, os.path.dirname(parameters_file)))
+            
+            
         models = []
         i=1
         while parameters.has_option('Models', 'model'+str(i)):
@@ -353,23 +399,8 @@ def parseConfiguration(parameters_file):
             
             for m in model:
                 print('Model' + str(i) +', parsing layer:', m)
-                
-                layer_name = parameters.get(m, 'type')
-    
-                if layer_name in layers_type:
-                    if parameters.has_option(m, 'model_path'):
-                        path = parameters.get(m, 'model_path')
-                        # the path in the configuration file are relative to the configuration file
-                        path = os.path.join(os.path.dirname(parameters_file), path)
-                        layer = layers_type[layer_name](path)
-                    else:
-                        layer = layers_type[layer_name]()
 
-                    current_layers.append(layer)
-                else:
-                    message = "Error! Layer {} in model {} doesn't exists!".format(layer_name, i+1)
-                    print(message)
-                    raise Exception(message)
+                current_layers.append(getLayer(parameters, m, os.path.dirname(parameters_file)))
             
             layers.append(current_layers)
         
@@ -377,5 +408,9 @@ def parseConfiguration(parameters_file):
         for l in layers:
             print('\t', len(l), 'layers')
         
-        return layers
-        
+        return toplayers, layers, oracle
+
+def softMax(x):
+    y = np.exp(x - np.max(x))
+    y /= np.sum(y)
+    return y

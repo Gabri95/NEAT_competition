@@ -5,76 +5,22 @@ import time as tm
 import sys
 import os.path
 import numpy as np
-
-
-from mysubsumption.racerLayer1 import RacerLayer1
-from mysubsumption.racerLayer2 import RacerLayer2
-from mysubsumption.racerLayer3 import RacerLayer3
-from mysubsumption.racerLayer4 import RacerLayer4
-from mysubsumption.unstuckLayer import UnstuckLayer
-from mysubsumption.opponentsLayer1 import OpponentsLayer1
-from mysubsumption.opponentsRacerLayer1 import OpponentsRacerLayer1
-from mysubsumption.opponentsLayer2 import OpponentsLayer2
-from mysubsumption.opponentsRacerLayer2 import OpponentsRacerLayer2
-from mysubsumption.opponentsRacerLayer3 import OpponentsRacerLayer3
-from mysubsumption.opponentsRacerLayer4 import OpponentsRacerLayer4
-from mysubsumption.opponentsRacerLayer5 import OpponentsRacerLayer5
-
-
-from mysubsumption.unstuckLayer2 import UnstuckLayer2
-from mysubsumption.unstuckLayer3 import UnstuckLayer3
-
-from mysubsumption.racerLayer import RacerLayer
-from mysubsumption.opponentsLayer import OpponentsLayer
-from mysubsumption.opponentsLayer import OpponentsRacerLayer
-
-
-from mysubsumption.racerLayerJesus import RacerLayerJesus
-from mysubsumption.racerLayerJesus2 import RacerLayerJesus2
-from mysubsumption.racerLayerJesus3 import RacerLayerJesus3
-
-from configparser import ConfigParser
+import pickle
 
 sys.path.insert(0, '../')
 
-layers_type = {
-    'RacerLayer1' : RacerLayer1,
-    'RacerLayer2' : RacerLayer2,
-    'RacerLayer3' : RacerLayer3,
-    'RacerLayer4' : RacerLayer4,
-    'UnstuckLayer' :UnstuckLayer,
-    'UnstuckLayer2' :UnstuckLayer2,
-    'UnstuckLayer3' :UnstuckLayer3,
-    'OpponentsLayer1' : OpponentsLayer1,
-    'OpponentsRacerLayer1' : OpponentsRacerLayer1,
-    'OpponentsLayer2' : OpponentsLayer2,
-    'OpponentsRacerLayer2' : OpponentsRacerLayer2,
-    'OpponentsRacerLayer3' : OpponentsRacerLayer3,
-    'OpponentsRacerLayer4' : OpponentsRacerLayer4,
-    'OpponentsRacerLayer' : OpponentsRacerLayer,
-    'OpponentsLayer' : OpponentsLayer,
-    'RacerLayer' : RacerLayer,
-    'OpponentsRacerLayer5' : OpponentsRacerLayer5,
-    'RacerLayerJesus' : RacerLayerJesus,
-    'RacerLayerJesus3' : RacerLayerJesus3,
-    'RacerLayerJesus2': RacerLayerJesus2
-}
 
 
 
-class SubsumptionDriver(Driver):
-    def __init__(self, driver_config, out_file=None):
-        super(SubsumptionDriver, self).__init__(logdata=False)
+
+
+class SimpleDriver(Driver):
+    def __init__(self, out_file=None):
+        super(SimpleDriver, self).__init__(logdata=False)
 
         self.out_file = out_file
         
-        self.layers = parseConfiguration(driver_config)
-        self.size = len(self.layers)
         
-        if self.size == 0:
-            raise Exception('Error! No layer set!')
-        
-
         self.last_lap_time = 0
         self.curr_time = -10.0
         self.time = 0.0
@@ -99,6 +45,7 @@ class SubsumptionDriver(Driver):
         print('Driver initialization completed')
         
 
+
     def drive(self, carstate: State) -> Command:
         
         print('Drive')
@@ -106,34 +53,23 @@ class SubsumptionDriver(Driver):
         self.print_log(carstate)
         
         self.update(carstate)
+
+        command = Command()
         
-        try:
-            
-            command = Command()
-            
-            l = self.size -1
-            
-            while not self.layers[l].applicable(carstate) and l >= 0:
-                l -= 1
-            
-            if l < 0:
-                print('Error!!! No layer applicable!!!!!')
-            else:
-                print('Using layer', l)
-                self.layers[l].step(carstate, command)
-                
-                #while l >= 0:
-                #   self.layers[l].step(carstate, Command())
-                #   l -= 1
-                
-                
-        except:
-            print('Error!')
-            self.saveResults()
-            raise
+        command.accelerator = 1
+        command.gear = 1
+        command.brake = 0
+        command.steering = 0#-1 * carstate.angle * np.pi / (180.0 * 0.785398)
+
+        if carstate.speed_x > 1 and command.gear >= 0 and command.brake < 0.1 and carstate.rpm > 8000:
+            command.gear = min(6, command.gear + 1)
+
+        if carstate.rpm < 2500 and command.gear > 1:
+            command.gear = command.gear - 1
+
+        if not command.gear:
+            command.gear = carstate.gear or 1
         
-        if self.data_logger:
-            self.data_logger.log(carstate, command)
         
         return command
 
@@ -184,7 +120,7 @@ class SubsumptionDriver(Driver):
         self.z = carstate.z
         self.race_position = carstate.race_position
 
-        self.offroad_penalty += (max(0, math.fabs(carstate.distance_from_center) - 0.96)) ** 2
+        self.offroad_penalty += (max(0, math.fabs(carstate.distance_from_center) - 0.985)) ** 2
 
         self.iterations_count += 1
 
@@ -193,6 +129,8 @@ class SubsumptionDriver(Driver):
 
         if self.iterations_count % 100 == 0:
             self.append_current_results()
+        
+        
 
     def append_current_results(self):
         self.results.append([
@@ -254,42 +192,3 @@ def get_velocity(speed_x, speed_y):
     return np.angle(speed_x + 1j * speed_y, True), np.sqrt(speed_x ** 2 + speed_y ** 2)
 
 
-
-def parseConfiguration(parameters_file):
-    
-    layers = []
-    
-    with open(parameters_file) as f:
-        parameters = ConfigParser()
-        parameters.read_file(f)
-        
-        l = 1
-        
-        while parameters.has_section('Layer' + str(l)):
-            print('Parsing layer'+str(l))
-            
-            layer_name = parameters.get('Layer' + str(l), 'type')
-            
-            if layer_name in layers_type:
-                if parameters.has_option('Layer' + str(l), 'model_path'):
-                    
-                    path = parameters.get('Layer' + str(l), 'model_path')
-                    
-                    #the path in the configuration file are relative to the configuration file
-                    path = os.path.join(os.path.dirname(parameters_file), path)
-                    
-                    layer = layers_type[layer_name](path)
-                else:
-                    layer = layers_type[layer_name]()
-                
-                layers.append(layer)
-            else:
-                message = "Error! Layer {} in section {} doesn't exists!".format(layer_name, 'layer' + str(l))
-                print(message)
-                raise Exception(message)
-            
-            l += 1
-        
-        print(l -1, 'layers set in the configuration file')
-    
-    return layers

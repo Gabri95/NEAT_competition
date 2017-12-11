@@ -3,16 +3,19 @@ sys.path.insert(0, '../')
 
 from pytocl.car import State, Command
 import numpy as np
-from mysubsumption.racerLayerJesus3 import RacerLayerJesus3
+from mysubsumption.racerLayer2 import RacerLayer2
 import math
 
-class OpponentsRacerLayer5(RacerLayerJesus3):
+class OpponentsLayer5(RacerLayer2):
     
-    def __init__(self, model_path, threshold=30):
-        super(OpponentsRacerLayer5, self).__init__(model_path)
+    def __init__(self, model_path, threshold=40):
+        super(OpponentsLayer5, self).__init__(model_path)
         
         self.threshold = threshold
-    
+
+    def applicable(self, carstate: State):
+        return min(carstate.opponents[9:27]) < self.threshold
+
     def processInput(self, carstate: State):
         
         array = list()

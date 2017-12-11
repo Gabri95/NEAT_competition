@@ -4,10 +4,13 @@ import numpy as np
 
 tracks = {
 
-'forza': {'timelimit': None, 'length': 1500},
-'e-track-1': {'timelimit': None, 'length': 1500},
-'michigan': {'timelimit': None, 'length': 1500},
-'aalborg': {'timelimit': None, 'length': 1500}
+'forza': {'timelimit': None},
+'e-track-1': {'timelimit': None},
+'e-track-2': {'timelimit': None},
+'eroad': {'timelimit': None},
+'g-speedway': {'timelimit': None},
+'wheel-1': {'timelimit': None},
+'aalborg': {'timelimit': None}
 }
 
 

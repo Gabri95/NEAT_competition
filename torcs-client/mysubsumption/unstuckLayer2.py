@@ -51,7 +51,7 @@ class UnstuckLayer2(Layer):
 
     def step(self, carstate: State, command: Command):
         
-        if self.front_stuck > 30:
+        if self.front_stuck > 15:
             d = min(carstate.distances_from_edge)
             command.accelerator = max(0, min(1, 1.3 - 0.7*d))
             command.gear = -1
@@ -59,6 +59,16 @@ class UnstuckLayer2(Layer):
             command.clutch = 0.0
             command.steering = -1 * carstate.angle * np.pi / (180.0 * 0.785398)
         else:
+            
+            if carstate.speed_x < 3:
+                command.gear = 1
+            if carstate.rpm > 8000:
+                command.gear = min(6, command.gear + 1)
+            if carstate.rpm < 2500:
+                command.gear = command.gear - 1
+            if command.gear <= 0:
+                command.gear = 1
+                
             command.accelerator = 1
             command.gear = 1 if carstate.gear <= 0 else carstate.gear
             command.brake = 0.0

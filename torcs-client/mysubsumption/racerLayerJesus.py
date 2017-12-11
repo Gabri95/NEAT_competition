@@ -7,9 +7,9 @@ import pickle
 import numpy as np
 import math
 
-class RacerLayer2(Layer):
+class RacerLayerJesus(Layer):
     def __init__(self, model_path):
-        super(RacerLayer2, self).__init__()
+        super(RacerLayerJesus, self).__init__()
 
         with open(model_path, 'rb') as f:
             self.model = pickle.load(f)
@@ -44,7 +44,7 @@ class RacerLayer2(Layer):
         
         # if carstate.gear <= 0:
         #     carstate.gear = 1
-        
+        #
         input = self.processInput(carstate)
         
         if np.isnan(input).any():
@@ -66,9 +66,25 @@ class RacerLayer2(Layer):
                     accelerator = output[0]
                 else:
                     brake = -1*output[0]
+
+                if max(carstate.distances_from_edge[8:11]) > 100 and carstate.gear >= 1:
+                    print('  ---------  JESUS TAKES THE WHEEL  ---------')
+                    
+                    # if carstate.distances_from_edge[9] < 150:
+                    #     dist = sum(carstate.distances_from_edge[8:11]) / 3.0
+                    # else:
+                    #     dist = carstate.distances_from_edge[9]
+
+                    dist = max(carstate.distances_from_edge[8:11])
+                    
+                    accelerator = max(command.accelerator, min(1, dist / 150.0) ** 2)
+                    brake = 0
                 
+
                 self.accelerate(accelerator, brake, carstate, command)
 
+                print('Accelerator =', command.accelerator)
+                
                 if len(output) == 2:
                     # use this if the steering is just one output
                     self.steer(output[1], 0, carstate, command)

@@ -147,9 +147,13 @@ class Client:
                 
                 if self.data_file is not None:
                     data_to_store = []
-                    data_to_store += [command.accelerator, command.brake, command.steering]
-                    data_to_store += [carstate.speed_x, carstate.distance_from_center, carstate.angle]
-                    data_to_store += carstate.distances_from_edge
+
+                    data_to_store += [carstate.gear, carstate.rpm, carstate.speed_x, carstate.speed_y]
+                    data_to_store += carstate.wheel_velocities
+                    data_to_store += [command.accelerator]#, command.brake, command.steering]
+                    #data_to_store += [carstate.distance_from_center, carstate.angle]
+                    #data_to_store += carstate.distances_from_edge
+                    
                     data_to_store = [str(v) for v in data_to_store]
                     self.data_file.write(', '.join(data_to_store) + '\n')
                 

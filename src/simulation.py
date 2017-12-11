@@ -19,6 +19,7 @@ FILE_PATH = os.path.realpath(__file__)
 DIR_PATH = os.path.dirname(FILE_PATH)
 
 client_path = os.path.join(DIR_PATH, '../torcs-client/')
+client_start = 'start.sh'
 shutdown_wait = 10
 result_saving_wait = 1
 timeout_server = 50
@@ -53,6 +54,7 @@ def simulation(phenotype_file,
                port,
                driver_config_template,
                client_path=client_path,
+               client_start=client_start,
                shutdown_wait=shutdown_wait,
                result_saving_wait=result_saving_wait,
                timeout_server=timeout_server
@@ -75,7 +77,7 @@ def simulation(phenotype_file,
     server = None
     
     print('\t\tStarting Client on port', port)
-    client = subprocess.Popen(['./start.sh', '-p', str(port), '-w', phenotype_file, '-o', results_file, '-d', driver_config],
+    client = subprocess.Popen(['./' + client_start, '-p', str(port), '-o', results_file, '-d', driver_config],
                               stdout=client_stdout,
                               stderr=client_stderr,
                               cwd=client_path,

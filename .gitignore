@@ -10,4 +10,7 @@ torcs-client/__pycache__
 torcs-client/pytocl/__pycache__
 .idea
 neatsociety/__pycache__
+oracle
+torcs-client/racedata
+torcs-client/drivelogs
 

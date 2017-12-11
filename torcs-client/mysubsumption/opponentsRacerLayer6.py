@@ -6,10 +6,10 @@ import numpy as np
 from mysubsumption.racerLayerJesus3 import RacerLayerJesus3
 import math
 
-class OpponentsRacerLayer5(RacerLayerJesus3):
+class OpponentsRacerLayer6(RacerLayerJesus3):
     
     def __init__(self, model_path, threshold=30):
-        super(OpponentsRacerLayer5, self).__init__(model_path)
+        super(OpponentsRacerLayer6, self).__init__(model_path)
         
         self.threshold = threshold
     
@@ -21,6 +21,8 @@ class OpponentsRacerLayer5(RacerLayerJesus3):
         
         array.append(carstate.speed_x / 50.0)
         #array.append(carstate.speed_y / 40.0)
+
+        array.append(carstate.distance_from_center)
         
         for idxs in [[0], [2], [4], [7, 9, 11], [14], [16], [18]]:
             d = min([carstate.distances_from_edge[j] for j in idxs])
