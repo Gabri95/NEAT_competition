@@ -22,10 +22,12 @@ from mysubsumption.opponentsRacerLayer5 import OpponentsRacerLayer5
 from mysubsumption.opponentsRacerLayer6 import OpponentsRacerLayer6
 from mysubsumption.opponentsLayer4 import OpponentsLayer4
 from mysubsumption.opponentsLayer5 import OpponentsLayer5
+from mysubsumption.opponentsLayer6 import OpponentsLayer6
 
 
 from mysubsumption.unstuckLayer2 import UnstuckLayer2
 from mysubsumption.unstuckLayer3 import UnstuckLayer3
+from mysubsumption.unstuckLayer4 import UnstuckLayer4
 
 
 from mysubsumption.simpleLayer import SimpleLayer
@@ -39,6 +41,7 @@ from mysubsumption.opponentsLayer import OpponentsRacerLayer
 from mysubsumption.racerLayerJesus import RacerLayerJesus
 from mysubsumption.racerLayerJesus2 import RacerLayerJesus2
 from mysubsumption.racerLayerJesus3 import RacerLayerJesus3
+from mysubsumption.racerLayerJesus4 import RacerLayerJesus4
 
 from configparser import ConfigParser
 
@@ -52,25 +55,27 @@ layers_type = {
     'UnstuckLayer' :UnstuckLayer,
     'UnstuckLayer2' :UnstuckLayer2,
     'UnstuckLayer3' :UnstuckLayer3,
+    'UnstuckLayer4' :UnstuckLayer4,
     'OpponentsLayer1' : OpponentsLayer1,
     'OpponentsRacerLayer1' : OpponentsRacerLayer1,
     'OpponentsLayer2' : OpponentsLayer2,
     'OpponentsRacerLayer2' : OpponentsRacerLayer2,
     'OpponentsRacerLayer3' : OpponentsRacerLayer3,
     'OpponentsRacerLayer4' : OpponentsRacerLayer4,
+    'OpponentsRacerLayer6' : OpponentsRacerLayer6,
     'OpponentsRacerLayer' : OpponentsRacerLayer,
     'OpponentsLayer' : OpponentsLayer,
     'RacerLayer' : RacerLayer,
     'OpponentsRacerLayer5' : OpponentsRacerLayer5,
-    'OpponentsRacerLayer6' : OpponentsRacerLayer6,
     'RacerLayerJesus' : RacerLayerJesus,
     'RacerLayerJesus3' : RacerLayerJesus3,
     'RacerLayerJesus2': RacerLayerJesus2,
+    'RacerLayerJesus4': RacerLayerJesus4,
     'SimpleLayer' : SimpleLayer,
     'OpponentsLayer4' : OpponentsLayer4,
-    'OpponentsLayer5' : OpponentsLayer5
+    'OpponentsLayer5' : OpponentsLayer5,
+    'OpponentsLayer6' : OpponentsLayer6
 }
-
 
 
 

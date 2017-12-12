@@ -5,7 +5,7 @@ Starting from the main directory of the project (we will call it <maindir>):
 
 - To train the model:
     
-    python src/nn_evolve.py -g <generations> -f <frequency> -p <port> -o <outputdir> [-c <checkpoint>]
+    python src/nn_evolve.py -g <generations> -f <frequency> -p <port> -o <outputdir> [-c <checkpoint>] [-s <client_start>]
     
     -g <generations>:   by default is 10 if not specified
     
@@ -22,31 +22,10 @@ Starting from the main directory of the project (we will call it <maindir>):
     -p <port>:          port to use for making the server and the client communicate (it has to be in the range [3001, 3010]).
                         Moreover, it has to be the one corresponding to the "src_server" driver set in the "configuration.xml" file.
                         (N.B.: make sure the port is available)
-
-
-
-    -d <driver>:        it has to be one of the following {"Driver1", "Driver2", "Driver3"} which correspond to the omonymous subclasses of
-                        "my_driver" in the omonymous file in the "torcs-client" directory. Precisely:
-                            - Driver1:  uses 2 different outputs for accelerator and brake (both in [0, 1]) and 1 or 2 outputs for steering (it is
-                                        understood by the length of the output of the net used)
-                            - Driver2:  uses 1 unique output for accelerator and brake (in [-1,1]) and 1 or 2 for steering (as before it is
-                                        understood dinamically looking at the length of the output). If the first output is positive it
-                                        is used for the accelerator whereas, if it is negative, its absolute value is used for the brake.
-                            - Driver3:  it is equal to Driver1 but it uses at most only 40% of the brake
-    
-    -u :                if set it makes the driver to go backward when the car is stuck against the border of the track
-    
-    -s :                if set it makes the driver use 8 more inputs containing information about the opponents nearby.
-                        N.B.: make sure to take this parameter into accout when setting the shape (input/output) of your neural networks.
-    
-    -t <timelimit>:     maximum time (in seconds) of the race to consider for the fitness function.
-                        If set, only the last entry in the result file with a "duration" smaller than <timelimit> is considered.
-                        For example, for a race with 2 laps where the bots in the game can finish a lap about 60 sec, 
-                        I usually set <timelimit> to 100 sec.
-                        If not set, only the last entry of the results is considered, i.e. only the final result at the end of the race.
-
-
-
+                        
+    -s <client_start>   the file to run (expected to be found in the client directory) to run the client. It should accept as command line 
+                        parameters: the port to use (-p), which file to use to store results (-o) and which driver configuration to use (-d).
+                        By default it is 'start.sh'. (See next section for more details about the client start file)
 
 
 N.B.: by default the script expect a number of file to be present in <outputdir> but it is possible to pass their path through the "-d", "-e", "-n" and "-x" options.
@@ -130,6 +109,8 @@ However, it is much more encouraged to use the following approach to run an expe
        
        ./start.sh -p 300[n] -d <driver_config> [-o <results_file>]
        
+       (if you used during the training a different <client_start> file, you should use it now instead of start.sh)
+       
        <driver_config>:     configuration file as the 'subsumption.template' file explained before.
                             It has to contain all the information to build a driver (N.B.: obviously you can't use '$phenotype' here anymore, but 
                             you have to set the path to the pickle file you want to use, containing the controller for the layer).
@@ -145,5 +126,18 @@ However, it is much more encouraged to use the following approach to run an expe
        The other parameter (-p) has the same meaning as the one explained at the beginning for the "nn_evolve.py" script.
        
 
-                            
-                            
+N.B.: newer kinds of drivers have been implemented as 'general_driver.py' and 'composite_driver.py'. They requires slightly different configuration file to be passed (-d) and can be run using respectively 'run2.py' and 'run4.py' in the torcs-client folder. For example, launching the 'start4.sh' will in turn run the run4.py script in order to use the 'composite_driver'.
+The configuration files for these 2 drivers are quite similar:
+
+    -   There has to be a section (title between '[]') named 'Models' with:
+        
+            + 2 options: 'model1' and 'model2'  each of them contains a list of sections titles which have to describe a particular
+                                                layer in that model
+            
+    -   for each of the layer listed in the 2 options explained above, there has to be a section describing that layer (it has the same structure
+        as the configuration file before)
+
+Moreover, if the driver is 'composite_driver', the section 'Models' has to have another option 'oracle', which contains the path (relative to the configuration file) to the oracle model which chooses how to weigh the 2 models at each timestep. Furthermore, it is possible to use also a 'toplayer' option where anoter list of layers can be set: those layers will be stacked upon the oracle (and so upon the 2 models). They have been used for the unstuck layer, which we didn't want to be affected by the oracle but to have an higher priority.
+
+
+

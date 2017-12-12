@@ -1,0 +1,22 @@
+
+[Models]
+oracle = $phenotype
+model1 = RoadLayer1 RoadLayer2
+model2 = DirtLayer1
+toplayers = UnstuckLayer
+
+[RoadLayer1]
+type        =       RacerLayerJesus3
+model_path  =       ../road.pickle
+
+[RoadLayer2]
+type        =       OpponentsLayer4
+model_path  =       ../overtake.pickle
+
+[DirtLayer1]
+type        =       OpponentsRacerLayer4
+model_path  =       ../dirt.pickle
+
+[UnstuckLayer]
+type        =       UnstuckLayer3
+

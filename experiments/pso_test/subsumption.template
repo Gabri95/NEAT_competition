@@ -1,0 +1,11 @@
+
+[Layer1]
+
+type        =       RacerLayerJesus4
+model_path  =       $phenotype
+
+
+[Layer2]
+
+type        =       UnstuckLayer3
+

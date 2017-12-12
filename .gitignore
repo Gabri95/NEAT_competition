@@ -1,16 +1,13 @@
 experiments/*
-!experiments/experiment_example
-!experiments/test_initialization
-!experiments/overtake_example
-!experiments/overtake_todo
-!experiments/dirt_todo
-!experiments/multi_track_todo
+!experiments/composite_experiment
+!experiments/esm_initialization
+!experiments/road_mix_experiment
+!experiments/pso_test
 src/__pycache__
 torcs-client/__pycache__
 torcs-client/pytocl/__pycache__
 .idea
 neatsociety/__pycache__
 oracle
-torcs-client/racedata
 torcs-client/drivelogs
 
